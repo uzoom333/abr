@@ -1,0 +1,6 @@
+.env
+venv/
+__pycache__/
+*.pyc
+historico.csv
+cache_zarc.json
