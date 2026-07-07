@@ -41,29 +41,44 @@ def janela_para_decendios(dia_ini, mes_ini, dia_fim, mes_fim, ano=2026):
 
     return list(range(dec_ini, dec_fim + 1))
 
-def pega_zarc_jatai():
-    traducao = {
-    "GRUPO I": "precoce",
-    "GRUPO II": "medio",
-    "GRUPO III": "tardio"
-}
 
+def pega_zarc(codigo_ibge):
+    """Retorna o dicionário ZARC de UMA cidade, usando cache se disponível."""
+    
+    traducao = {
+        "GRUPO I": "precoce",
+        "GRUPO II": "medio",
+        "GRUPO III": "tardio"
+    }
+    
     arquivo_cache = "cache_zarc.json"
     
-    # CAMINHO 1: Cache existe → lê e retorna
+    # 1. LER o cache atual (se existir)
     if os.path.exists(arquivo_cache):
-        print("📂 Lendo do cache local")
         with open(arquivo_cache, "r") as f:
-            return json.load(f)
+            cache_completo = json.load(f)
+    else:
+        cache_completo = {}   # ← o que colocar aqui? pensa
     
-    # CAMINHO 2: Cache NÃO existe → chama API
-    print("🌐 Chamando API (gastando 1 requisição)")
+    # 2. VERIFICAR se essa cidade JÁ ESTÁ no cache
+    if str(codigo_ibge) in cache_completo:    # ← qual chave verificar?
+        print(f"📂 Cache: cidade {codigo_ibge}")
+        return cache_completo[str(codigo_ibge)]  # ← retorna O QUÊ especificamente?
+    
+    # 3. Se não está no cache: CHAMA a API
+    print(f"🌐 API: chamando pra cidade {codigo_ibge}")
+    
+    parametros = {
+        "idCultura": 60,
+        "codigoIBGE": codigo_ibge,   # ← o que vai aqui?
+        "risco": 20
+    }
     
     resposta = requests.get(url, headers=headers, params=parametros)
     dados = resposta.json()
     zarc = dados["data"]
     
-    # Monta o dicionário
+    # 4. Monta o dicionário de UMA cidade só
     janelas_por_ciclo = {}
     for janela in zarc:
         if janela["solo"] == "AD2":
@@ -77,17 +92,13 @@ def pega_zarc_jatai():
             else:
                 janelas_por_ciclo[ciclo] = decendios
     
-    # Salva no cache pra próxima vez
-    with open(arquivo_cache, "w") as f:
-        json.dump(janelas_por_ciclo, f)
+    # 5. Adiciona ao cache completo e salva
+    cache_completo[str(codigo_ibge)] = janelas_por_ciclo     # ← pensa: qual chave e qual valor?
     
-    return janelas_por_ciclo
+    with open(arquivo_cache, "w") as f:
+        json.dump(cache_completo, f)
+    
+    return janelas_por_ciclo  # ← retorna o quê?
 
-
-# ===== TESTE =====
-print(janela_para_decendios(1, 10, 31, 12))   # teste função auxiliar
-print(janela_para_decendios(1, 1, 10, 1))     # teste função auxiliar
-
-resultado = pega_zarc_jatai()
-print(resultado)
-
+print(pega_zarc(5211909))   # Jataí
+print(pega_zarc(5218805))   # Rio Verde
