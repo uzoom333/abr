@@ -41,6 +41,41 @@ def janela_para_decendios(dia_ini, mes_ini, dia_fim, mes_fim, ano=2026):
 
     return list(range(dec_ini, dec_fim + 1))
 
+def busca_municipios_go():
+    """Retorna lista dos municipios de GO,usando cache local"""
+
+    arquivo_cache = "cache_municipios.json"
+
+    if os.path.exists(arquivo_cache):
+        with open(arquivo_cache, "r") as f:
+            cache_completo = json.load(f)
+            return cache_completo
+    
+    print("🌐 API: buscando municípios de GO")
+
+    url_municipios = "https://api.cnptia.embrapa.br/agritec/v2/municipios"
+    parametros = {"uf": "GO"}
+    
+    resposta = requests.get(url_municipios, headers=headers, params=parametros)
+    dados = resposta.json()
+    municipios = dados["data"]
+
+    with open(arquivo_cache, "w") as f:
+        json.dump(municipios, f)
+
+    return municipios
+
+def buscar_municipios(termo):
+    "Busca municipios do estado de GO pelo termo,caso exista"
+
+    municipios = busca_municipios_go()
+    resultados = []
+
+    for municipio in municipios:
+        if termo.lower() in municipio["nome"].lower():
+            resultados.append(municipio)
+    return resultados 
+
 
 def pega_zarc(codigo_ibge):
     """Retorna o dicionário ZARC de UMA cidade, usando cache se disponível."""
@@ -98,7 +133,6 @@ def pega_zarc(codigo_ibge):
     with open(arquivo_cache, "w") as f:
         json.dump(cache_completo, f)
     
-    return janelas_por_ciclo  # ← retorna o quê?
+    return janelas_por_ciclo  
 
-print(pega_zarc(5211909))   # Jataí
-print(pega_zarc(5218805))   # Rio Verde
+print(buscar_municipios("jat")) 
