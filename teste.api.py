@@ -135,4 +135,38 @@ def pega_zarc(codigo_ibge):
     
     return janelas_por_ciclo  
 
-print(buscar_municipios("jat")) 
+def escolher_municipio():
+    """Fluxo iterativo para usuario escolher um municipio.Retorna o codigoIBGE ou None"""
+
+    termo = input("Digite parte do nome do municipio: ")
+
+    resultados = buscar_municipios(termo)
+
+    if not resultados:
+        print("Nenhuma cidade encontrada")
+        return None
+
+    print("\nEncontrados: ")
+    for i, municipio in enumerate(resultados, start=1):
+        print(f"{i} - {municipio['nome']} ")
+
+    while True:
+        try:
+            escolha = int(input("\nEscolha o numero: "))
+            if 1 <= escolha <= len(resultados):
+                break
+            else:
+                print("Numero fora do intervalo")
+        except ValueError:
+            print("Digite um numero valido")
+        
+    municipio_escolhido = resultados[escolha - 1]      
+    return municipio_escolhido['codigoIBGE']
+
+codigo = escolher_municipio()
+print(f"\nCódigo IBGE retornado: {codigo}")
+
+# Testa se o código funciona no pega_zarc
+if codigo is not None:
+    zarc = pega_zarc(codigo)
+    print(f"ZARC: {zarc}")
