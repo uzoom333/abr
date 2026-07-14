@@ -2,5 +2,6 @@
 venv/
 __pycache__/
 *.pyc
-historico.csv
+historico_v1.csv
 cache_zarc.json
+cache_municipios.json
