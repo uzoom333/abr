@@ -1,245 +1,55 @@
-from datetime import date, datetime
-import os
-from dotenv import load_dotenv
-import json
-import requests
+from datetime import date
 
-load_dotenv()
-token = os.getenv("ACCESS_TOKEN")
+from api import escolher_municipio, pega_zarc
+from zarc import qual_decendio, esta_na_janela
+from historico import salvar_consulta, mostrar_historico
 
-headers = {
-    "Authorization": f"Bearer {token}"
-}
-
-url = "https://api.cnptia.embrapa.br/agritec/v2/zoneamento"
 
 meses = {
-    1 : "janeiro", 2 : "fevereiro", 3 : "março", 4 : "abril", 5 : "maio", 6 : "junho", 7 : "julho", 8 : "agosto", 9 : "setembro", 10 : "outubro", 11 :"novembro", 12 : "dezembro"
+    1: "janeiro", 2: "fevereiro", 3: "março", 4: "abril",
+    5: "maio", 6: "junho", 7: "julho", 8: "agosto",
+    9: "setembro", 10: "outubro", 11: "novembro", 12: "dezembro"
 }
 
 meses_para_numero = {
-    "janeiro": 1,
-    "fevereiro": 2,
-    "março": 3,
-    "marco": 3,
-    "abril": 4,
-    "maio": 5,
-    "junho": 6,
-    "julho": 7,
-    "agosto": 8,
-    "setembro": 9,
-    "outubro": 10,
-    "novembro": 11,
-    "dezembro": 12
+    "janeiro": 1, "fevereiro": 2, "março": 3, "marco": 3,
+    "abril": 4, "maio": 5, "junho": 6, "julho": 7,
+    "agosto": 8, "setembro": 9, "outubro": 10,
+    "novembro": 11, "dezembro": 12
 }
 
-def janela_para_decendios(dia_ini, mes_ini, dia_fim, mes_fim, ano=2026):
-    data_ini = date(ano, mes_ini, dia_ini)
-    data_fim = date(ano, mes_fim, dia_fim)
 
-    dec_ini = qual_decendio(data_ini)
-    dec_fim = qual_decendio(data_fim)
-
-    return list(range(dec_ini, dec_fim + 1))
-
-def qual_decendio(data):
-    day = data.day
-    month = data.month
-    if day <=10:
-        dec_mes = 1 
-    elif day <=20:    
-        dec_mes = 2 
-    else:
-        dec_mes = 3
-    dec_ano = (month - 1)* 3 + dec_mes
-
-    return dec_ano
-
-def esta_na_janela(data_plantio, ciclo, janelas):
-    """Verifica se uma data está dentro da janela ZARC do ciclo informado."""
-
-    decendio = qual_decendio(data_plantio)
-    janela = janelas[ciclo]
-    if decendio in janela:
-        return True
-    else:
-        return False
-    
-def salvar_consulta(codigo_ibge, ciclo, data_plantio, resultado):
-    """Salva uma consulta no arquivo historico.csv."""
-    
-    arquivo = "historico.csv"
-    
-    # 1. Data/hora atual SEM microssegundos
-    data_consulta = datetime.now().replace(microsecond=0)
-    
-    # 2. Converte True/False em texto
-    if resultado:
-        status = "dentro"
-    else:
-        status = "fora"
-    
-    # 3. Verifica se o arquivo já existe
-    arquivo_existe = os.path.exists(arquivo)
-    
-    # 4. Abre o arquivo em modo append
-    with open(arquivo, "a") as f:
-        # 4a. Se o arquivo NÃO existe, escreve o cabeçalho primeiro
-        if not arquivo_existe:
-            f.write("data_consulta,cidade,ciclo,data_plantio,resultado\n")
-        
-        # 4b. Sempre escreve a linha de dados
-        f.write(f"{data_consulta},{codigo_ibge},{ciclo},{data_plantio},{status}\n") 
-
-def busca_municipios_go():
-    """Retorna lista dos municipios de GO,usando cache local"""
-
-    arquivo_cache = "cache_municipios.json"
-
-    if os.path.exists(arquivo_cache):
-        with open(arquivo_cache, "r") as f:
-            cache_completo = json.load(f)
-            return cache_completo
-    
-    print("🌐 API: buscando municípios de GO")
-
-    url_municipios = "https://api.cnptia.embrapa.br/agritec/v2/municipios"
-    parametros = {"uf": "GO"}
-    
-    resposta = requests.get(url_municipios, headers=headers, params=parametros)
-    dados = resposta.json()
-    municipios = dados["data"]
-
-    with open(arquivo_cache, "w") as f:
-        json.dump(municipios, f)
-
-    return municipios
-
-def buscar_municipios(termo):
-    "Busca municipios do estado de GO pelo termo,caso exista"
-
-    municipios = busca_municipios_go()
-    resultados = []
-
-    for municipio in municipios:
-        if termo.lower() in municipio["nome"].lower():
-            resultados.append(municipio)
-    return resultados 
-
-
-def pega_zarc(codigo_ibge):
-    """Retorna o dicionário ZARC de UMA cidade, usando cache se disponível."""
-    
-    traducao = {
-        "GRUPO I": "precoce",
-        "GRUPO II": "medio",
-        "GRUPO III": "tardio"
-    }
-    
-    arquivo_cache = "cache_zarc.json"
-    
-    # 1. LER o cache atual (se existir)
-    if os.path.exists(arquivo_cache):
-        with open(arquivo_cache, "r") as f:
-            cache_completo = json.load(f)
-    else:
-        cache_completo = {}   # ← o que colocar aqui? pensa
-    
-    # 2. VERIFICAR se essa cidade JÁ ESTÁ no cache
-    if str(codigo_ibge) in cache_completo:    # ← qual chave verificar?
-        print(f"📂 Cache: cidade {codigo_ibge}")
-        return cache_completo[str(codigo_ibge)]  # ← retorna O QUÊ especificamente?
-    
-    # 3. Se não está no cache: CHAMA a API
-    print(f"🌐 API: chamando pra cidade {codigo_ibge}")
-    
-    parametros = {
-        "idCultura": 60,
-        "codigoIBGE": codigo_ibge,   # ← o que vai aqui?
-        "risco": 20
-    }
-    
-    resposta = requests.get(url, headers=headers, params=parametros)
-    dados = resposta.json()
-    zarc = dados["data"]
-    
-    # 4. Monta o dicionário de UMA cidade só
-    janelas_por_ciclo = {}
-    for janela in zarc:
-        if janela["solo"] == "AD2":
-            decendios = janela_para_decendios(
-                janela["diaIni"], janela["mesIni"],
-                janela["diaFim"], janela["mesFim"]
-            )
-            ciclo = traducao[janela["ciclo"]]
-            if ciclo in janelas_por_ciclo:
-                janelas_por_ciclo[ciclo].extend(decendios)
-            else:
-                janelas_por_ciclo[ciclo] = decendios
-    
-    # 5. Adiciona ao cache completo e salva
-    cache_completo[str(codigo_ibge)] = janelas_por_ciclo     # ← pensa: qual chave e qual valor?
-    
-    with open(arquivo_cache, "w") as f:
-        json.dump(cache_completo, f)
-    
-    return janelas_por_ciclo  
-
-def escolher_municipio():
-    """Fluxo iterativo para usuario escolher um municipio.Retorna o codigoIBGE ou None"""
-
-    termo = input("Digite parte do nome do municipio: ")
-
-    resultados = buscar_municipios(termo)
-
-    if not resultados:
-        print("Nenhuma cidade encontrada")
-        return None
-
-    print("\nEncontrados: ")
-    for i, municipio in enumerate(resultados, start=1):
-        print(f"{i} - {municipio['nome']} ")
-
-    while True:
-        try:
-            escolha = int(input("\nEscolha o numero: "))
-            if 1 <= escolha <= len(resultados):
-                break
-            else:
-                print("Numero fora do intervalo")
-        except ValueError:
-            print("Digite um numero valido")
-
-    municipio_escolhido = resultados[escolha - 1]      
-    return municipio_escolhido['codigoIBGE']
-    
 def main():
     print("Boas vindas a ABR - CONSULTOR DE CICLOS PREDITIVO")
     print()
-    print("="*40)
+    print("=" * 40)
     print(">> Nova consulta de plantio  ")
-    print("="*40)
+    print("=" * 40)
     print()
 
     codigo_ibge = escolher_municipio()
     if codigo_ibge is None:
-            return
+        return
+
     janelas = pega_zarc(codigo_ibge)
+
     while True:
         ciclo = input("Qual ciclo da soja (precoce,medio,tardio) ? ").lower()
         if ciclo in janelas:
             break
         else:
             print("Invalido, tente novamente")
+
     while True:
         try:
             dia = int(input("Qual dia você quer plantar? "))
             break
         except ValueError:
             print("Dia invalido")
+
     while True:
         mes_texto = input("Qual mes voce quer plantar? ").strip().lower()
-        try:    
+        try:
             mes = int(mes_texto)
             if mes < 1 or mes > 12:
                 print("Mes fora do intervalo")
@@ -251,6 +61,7 @@ def main():
                 break
             else:
                 print("Mes invalido")
+
     while True:
         try:
             ano = int(input("Qual ano voce deseja plantar?(2024-2030) "))
@@ -260,33 +71,29 @@ def main():
             break
         except ValueError:
             print("Data inválida")
-    
+
     try:
         data_plantio = date(ano, mes, dia)
     except ValueError:
         print("Data inválida ")
-        return           
+        return
+
     print()
-    print("="*40)
+    print("=" * 40)
     print()
 
     resultado = esta_na_janela(data_plantio, ciclo, janelas)
 
     nome_mes = meses[mes]
-
     decendio_ciclo = qual_decendio(data_plantio)
-
     janelas_ciclos = janelas[ciclo]
-
     primeiro_decendio = janelas_ciclos[0]
-
     ultimo_decendio = janelas_ciclos[-1]
 
     if resultado:
         print(f"✅ Plantio em {dia} de {nome_mes} de {ano} (decêndio {decendio_ciclo}) dentro da janela do Zarc !\n Ciclo {ciclo} aceitos: {janelas_ciclos}")
 
         faltam = ultimo_decendio - decendio_ciclo
-
         if faltam == 0:
             print("⚠️ Você está no ÚLTIMO decêndio da janela!")
         else:
@@ -296,52 +103,35 @@ def main():
         print(f"❌ Plantio em {dia} de {nome_mes} de {ano} (decêndio {decendio_ciclo}) fora da janela do Zarc {ciclo}!\n Ciclo {ciclo} aceitos: {janelas_ciclos}")
 
         inicio = primeiro_decendio - decendio_ciclo
-
         if inicio > 0:
             print(f"A janela abre em {inicio} decendios")
         else:
-            print("O ciclo desse ano ja passou")    
+            print("O ciclo desse ano ja passou")
 
     salvar_consulta(codigo_ibge, ciclo, data_plantio, resultado)
-    
+
     resposta = input("Quer fazer outra consulta? (s/n)")
     if resposta == "s":
         main()
 
     print()
-    print("="*40)
-    print()  
-
-def mostrar_historico():
+    print("=" * 40)
     print()
-    print("="*40)
-    print(">> Histórico de consultas: ")
-    print("="*40)
-    print()
-    arquivo = "historico.csv"
 
-    arquivo_existe = os.path.exists(arquivo)
-
-
-    if not arquivo_existe:
-        print("Nenhuma consulta no historico")
-    else:
-        with open (arquivo, "r") as f:
-            for linha in f:
-                print(linha.strip())
 
 def menu():
     while True:
         escolha = input("Escolha qual opçao deseja (1-> Nova Consulta,2-> Ver historico,3-> Sair)!")
-        if escolha  == "1":
+        if escolha == "1":
             main()
         elif escolha == "2":
             mostrar_historico()
         elif escolha == "3":
             print("Saindo do menu")
-            break    
+            break
         else:
             print("Opçao invalida")
+
 
 if __name__ == "__main__":
     menu()
