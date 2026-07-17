@@ -1,5 +1,5 @@
 from datetime import date
-
+from comparacao import comparar_cidades
 from api import escolher_municipio, pega_zarc
 from zarc import qual_decendio, esta_na_janela
 from historico import salvar_consulta, mostrar_historico
@@ -32,6 +32,9 @@ def main():
         return
 
     janelas = pega_zarc(codigo_ibge)
+    if janelas is None:
+        print("Não foi possível obter os dados dessa cidade. Escolha outra.")
+        return
 
     while True:
         ciclo = input("Qual ciclo da soja (precoce,medio,tardio) ? ").lower()
@@ -121,12 +124,14 @@ def main():
 
 def menu():
     while True:
-        escolha = input("Escolha qual opçao deseja (1-> Nova Consulta,2-> Ver historico,3-> Sair)!")
+        escolha = input("Escolha qual opçao deseja (1-> Nova Consulta,2-> Ver historico,3-> Comparar,4-> Sair)!")
         if escolha == "1":
             main()
         elif escolha == "2":
             mostrar_historico()
         elif escolha == "3":
+            comparar_cidades()   
+        elif escolha == "4":     
             print("Saindo do menu")
             break
         else:

@@ -120,8 +120,17 @@ def pega_zarc(codigo_ibge):
     }
 
     resposta = requests.get(url, headers=headers, params=parametros)
+
+    if resposta.status_code != 200:
+        print(f"⚠️ API não retornou dados pra cidade {codigo_ibge} (status {resposta.status_code})")
+        return None
+
     dados = resposta.json()
-    zarc = dados["data"]
+    zarc = dados.get("data", [])
+
+    if not zarc:
+        print(f"⚠️ Cidade {codigo_ibge} não tem zoneamento cadastrado")
+        return None
 
     janelas_por_ciclo = {}
     for janela in zarc:
