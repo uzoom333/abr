@@ -1,5 +1,5 @@
 from api import escolher_municipio, pega_zarc
-from zarc import qual_decendio
+from zarc import qual_decendio, esta_na_janela
 from datetime import date
 
 def comparar_cidades():
@@ -89,6 +89,51 @@ def comparar_cidades():
         print("Nenhuma cidade escolhida. Voltando ao menu.")
         return
     
-    # TESTE TEMPORÁRIO
-    print(codigos_escolhidos)
+    # 7. PROCESSAMENTO — pra cada cidade escolhida
+    resultados = []
+    cidades_sem_zarc = []
+    cidades_sem_ciclo = []
+
+    decendio_data = qual_decendio(data_plantio)
+
+    for codigo in codigos_escolhidos:
+        janelas = pega_zarc(codigo)
+
+        # 7a. Se pega_zarc retornou None → cidade sem ZARC
+        if janelas is None:
+            cidades_sem_zarc.append(codigo)
+            continue
+
+        # 7b. Se o ciclo escolhido não existe pra essa cidade
+        if ciclo not in janelas:
+            cidades_sem_ciclo.append(codigo)   # ← adiciona em cidades_sem_ciclo
+            continue
+
+        # 7c. Extrai a janela do ciclo
+        janela_ciclo = janelas[ciclo]
+        primeiro = janela_ciclo[0]
+        ultimo = janela_ciclo[-1]
+
+        # 7d. Descobre status + restantes
+        if esta_na_janela(data_plantio, ciclo, janelas):
+            status = "dentro"
+            restantes = ultimo - decendio_data   # ← quantos decêndios até o fim
+        elif decendio_data < primeiro:
+            status = "antes"
+            restantes = primeiro - decendio_data  # ← quantos faltam pra abrir (positivo)
+        else:
+            status = "passou"
+            restantes = None
+
+        # 7e. Adiciona ao resultado
+        resultados.append({
+            "codigo": codigo,
+            "status": status,       # ← qual variável?""
+            "restantes": restantes,    # ← qual variável?
+        })
+
+    # TESTE TEMPORÁRIO — imprime os 3
+    print(f"Resultados: {resultados}")
+    print(f"Sem ZARC: {cidades_sem_zarc}")
+    print(f"Sem ciclo: {cidades_sem_ciclo}")
     
