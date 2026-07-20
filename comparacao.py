@@ -1,4 +1,4 @@
-from api import escolher_municipio, pega_zarc
+from api import escolher_municipio, pega_zarc, busca_municipios_go
 from zarc import qual_decendio, esta_na_janela
 from datetime import date
 
@@ -131,9 +131,66 @@ def comparar_cidades():
             "status": status,       # ← qual variável?""
             "restantes": restantes,    # ← qual variável?
         })
-
-    # TESTE TEMPORÁRIO — imprime os 3
-    print(f"Resultados: {resultados}")
-    print(f"Sem ZARC: {cidades_sem_zarc}")
-    print(f"Sem ciclo: {cidades_sem_ciclo}")
+    # 8. BUSCAR NOMES DAS CIDADES
+    todos_municipios = busca_municipios_go()
+    
+    def nome_por_codigo(codigo):
+        for m in todos_municipios:
+            if m["codigoIBGE"] == codigo:
+                return m["nome"]
+        return "?"
+    
+    # 9. SEPARAR POR STATUS
+    dentro = [r for r in resultados if r["status"] == "dentro"]
+    antes = [r for r in resultados if r["status"] == "antes"]
+    passou = [r for r in resultados if r["status"] == "passou"]
+    
+    # 10. ORDENAR
+    dentro.sort(key=lambda x: x["restantes"], reverse=True)   # mais tempo primeiro
+    antes.sort(key=lambda x: x["restantes"])                   # menos tempo pra abrir primeiro
+    
+    # 11. APRESENTAR
+    print()
+    print("="*40)
+    print(f"RESULTADO DA COMPARAÇÃO")
+    print(f"Ciclo: {ciclo} | Data: {data_plantio}")
+    print("="*40)
+    
+    if dentro:
+        print("\n🟢 DENTRO DA JANELA")
+        print("-"*40)
+        for r in dentro:
+            nome = nome_por_codigo(r["codigo"])                                          # ← usa nome_por_codigo
+            print(f"- {nome} (restam {r['restantes']} decêndios)")
+    
+    if antes:
+        print("\n🟡 JANELA AINDA VAI ABRIR")
+        print("-"*40)
+        for r in antes:
+            nome = nome_por_codigo(r["codigo"])
+            print(f"- {nome} (abre em {r['restantes']} decêndios)")
+    
+    if passou:
+        print("\n🔴 JANELA JÁ PASSOU")
+        print("-"*40)
+        for r in passou:
+            nome = nome_por_codigo(r["codigo"])
+            print(f"- {nome}")
+    
+    if cidades_sem_zarc:
+        print("\n⚠️ SEM ZONEAMENTO DISPONÍVEL")
+        print("-"*40)
+        for codigo in cidades_sem_zarc:
+            nome = nome_por_codigo(codigo)
+            print(f"- {nome} ({codigo})")
+    
+    if cidades_sem_ciclo:
+        print(f"\n⚠️ SEM O CICLO '{ciclo}' DISPONÍVEL")
+        print("-"*40)
+        for codigo in cidades_sem_ciclo:
+            nome = nome_por_codigo(codigo)
+            print(f"- {nome} ({codigo})")
+    
+    print()
+    print("="*40)
     
