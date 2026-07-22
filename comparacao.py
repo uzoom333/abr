@@ -1,4 +1,5 @@
 from api import escolher_municipio, pega_zarc, busca_municipios_go
+from zarc import qual_decendio, esta_na_janela, proximo_decendio_valido
 from zarc import qual_decendio, esta_na_janela
 from datetime import date
 
@@ -117,10 +118,12 @@ def comparar_cidades():
         # 7d. Descobre status + restantes
         if esta_na_janela(data_plantio, ciclo, janelas):
             status = "dentro"
-            restantes = ultimo - decendio_data   # ← quantos decêndios até o fim
-        elif decendio_data < primeiro:
+            restantes = ultimo - decendio_data
+        else:
+            proximo = proximo_decendio_valido(decendio_data, janela_ciclo)
+        if proximo is not None:
             status = "antes"
-            restantes = primeiro - decendio_data  # ← quantos faltam pra abrir (positivo)
+            restantes = proximo - decendio_data
         else:
             status = "passou"
             restantes = None

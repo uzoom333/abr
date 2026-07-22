@@ -23,6 +23,16 @@ def janela_para_decendios(dia_ini, mes_ini, dia_fim, mes_fim, ano=2026):
 
     return list(range(dec_ini, dec_fim + 1))
 
+def proximo_decendio_valido(decendio_data, janela):
+    """Retorna o menor decêndio da janela que é >= decendio_data.
+    Se nenhum decêndio da janela for >= data, retorna None (janela passou)."""
+    
+    for decendio_novo in janela:                           # ← itera na janela
+        if decendio_novo >= decendio_data:                  # ← condição
+            return decendio_novo                # ← retorna o decêndio atual
+    
+    return None
+
 
 def esta_na_janela(data_plantio, ciclo, janelas):
     """Verifica se uma data está dentro da janela ZARC do ciclo informado."""

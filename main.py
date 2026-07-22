@@ -1,9 +1,10 @@
 from datetime import date
 from comparacao import comparar_cidades
+from zarc import qual_decendio, esta_na_janela, proximo_decendio_valido
 from api import escolher_municipio, pega_zarc
 from zarc import qual_decendio, esta_na_janela
 from historico import salvar_consulta, mostrar_historico
-
+from estatistica import mostrar_estatisticas
 
 meses = {
     1: "janeiro", 2: "fevereiro", 3: "março", 4: "abril",
@@ -104,10 +105,11 @@ def main():
 
     else:
         print(f"❌ Plantio em {dia} de {nome_mes} de {ano} (decêndio {decendio_ciclo}) fora da janela do Zarc {ciclo}!\n Ciclo {ciclo} aceitos: {janelas_ciclos}")
-
-        inicio = primeiro_decendio - decendio_ciclo
-        if inicio > 0:
-            print(f"A janela abre em {inicio} decendios")
+    
+        proximo = proximo_decendio_valido(decendio_ciclo, janelas_ciclos)
+        if proximo is not None:
+            faltam = proximo - decendio_ciclo
+            print(f"⏳ A janela abre em {faltam} decêndios")
         else:
             print("O ciclo desse ano ja passou")
 
@@ -124,7 +126,7 @@ def main():
 
 def menu():
     while True:
-        escolha = input("Escolha qual opçao deseja (1-> Nova Consulta,2-> Ver historico,3-> Comparar,4-> Sair)!")
+        escolha = input("Escolha qual opçao deseja (1-> Nova Consulta,2-> Ver historico,3-> Comparar,4-> Ver estatisticas 5-> Saindo do menu)!")
         if escolha == "1":
             main()
         elif escolha == "2":
@@ -132,6 +134,8 @@ def menu():
         elif escolha == "3":
             comparar_cidades()   
         elif escolha == "4":     
+            mostrar_estatisticas()
+        elif escolha == "5":
             print("Saindo do menu")
             break
         else:
