@@ -1,114 +1,112 @@
-# ABR 
+# ABR
 
-Sistema em linha de comando para consulta e validação de janelas de plantio de soja em Jataí (GO), com base nos dados oficiais do Zoneamento Agrícola de Risco Climático (ZARC) da Embrapa.
+ABR is an agricultural decision-support command-line application that uses official Brazilian Agricultural Climate Risk Zoning (ZARC) data to evaluate soybean planting windows in Goiás.
 
-**Versão atual:** V1 — CLI com integração à AgroAPI (Embrapa)
+## Project Overview
 
----
+The application connects to Embrapa's AgroAPI, searches municipalities in Goiás, and checks a proposed planting date against the available ZARC windows for early-, medium-, or late-cycle soybeans. It is an educational software project: its output supports exploration of public zoning data and does not replace professional agronomic advice.
 
-## Motivação
+Current features include:
 
-Por volta de maio de 2026 acabei me inserindo, por diversão, no universo do agronegócio do meu estado — festas locais, feiras, conversas — e fui gostando do estilo de vida e da forma como as coisas funcionam ali. A partir disso, decidi conectar essa curiosidade nova com os estudos em Python e minha iniciação científica, colocando a mão na massa em algo funcional.
+- municipality search across Goiás;
+- planting-window checks by soybean cycle and date;
+- comparison of up to ten municipalities;
+- local query history;
+- history statistics with ASCII charts;
+- local caching to reduce API calls.
 
-No começo, o ABR era apenas um preditor de ciclos de plantio. Mas ao longo do desenvolvimento surgiram muitas ideias novas — o roadmap abaixo dá uma noção do potencial que enxergo daqui pra frente, especialmente ao combinar Álgebra Linear, Programação Linear e IA aplicada a decisões agrícolas reais.
+## Motivation
 
----
+In 2026, curiosity about agriculture in Goiás led me to connect a new area of interest with my Python studies and undergraduate research. ABR began as a small planting-cycle checker and became a practical exercise in API integration, data interpretation, command-line design, and decision-support software.
 
-## Como funciona
+The project is intentionally evolving alongside my studies in Linear Algebra, mathematical optimization, scientific computing, and data analysis.
 
-O ABR permite ao usuário:
+## Data and Decision Logic
 
-- Consultar a janela de plantio recomendada por ciclo (precoce, médio, tardio)
-- Verificar se uma data específica está dentro da janela ZARC
-- Consultar o histórico de todas as consultas realizadas
-- Usar cache local para economizar chamadas à API (limite de 100 requisições/dia)
+ABR requests zoning records from the AgroAPI Agritec v2 `/zoneamento` endpoint. The current query uses soybeans (`idCultura=60`), a maximum risk level of 20%, and AD2 soil records. Calendar dates are mapped to ten-day periods (*decêndios*) before being compared with the zoning windows returned by the API.
 
-Os dados são buscados diretamente do endpoint `/zoneamento` da AgroAPI da Embrapa, filtrados para o município de Jataí (GO), cultura soja (id 60), solo AD2 e risco máximo de 20%.
+The underlying records come from an external public service and may be unavailable, revised, or incomplete. Always consult the official ZARC publications for decisions with real agricultural consequences.
 
----
-
-## Tecnologias
+## Technologies
 
 - Python 3.12
-- [requests](https://pypi.org/project/requests/) — chamadas HTTP à API
-- [python-dotenv](https://pypi.org/project/python-dotenv/) — variáveis de ambiente
-- [AgroAPI Agritec v2](https://www.agroapi.cnptia.embrapa.br/) — dados oficiais do ZARC
+- [Requests](https://pypi.org/project/requests/) for HTTP requests
+- [python-dotenv](https://pypi.org/project/python-dotenv/) for local environment configuration
+- [AgroAPI Agritec v2](https://www.agroapi.cnptia.embrapa.br/) for ZARC data
 
----
-
-## Como rodar localmente
+## Installation
 
 ```bash
-# 1. Clonar o repositório
 git clone https://github.com/uzoom333/abr.git
 cd abr
 
-# 2. Criar e ativar ambiente virtual
-python3 -m venv venv
-source venv/bin/activate
+python3 -m venv .venv
+source .venv/bin/activate
 
-# 3. Instalar dependências
-pip install requests python-dotenv
+python -m pip install requests python-dotenv
+```
 
-# 4. Criar arquivo .env com seu Access Token da AgroAPI
-echo "ACCESS_TOKEN=seu_token_aqui" > .env
+On Windows PowerShell, activate the environment with:
 
-# 5. Executar
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+Create a `.env` file in the repository root:
+
+```text
+ACCESS_TOKEN=your_agroapi_token
+```
+
+An access token is available after registration in the [AgroAPI portal](https://www.agroapi.cnptia.embrapa.br/portal/). Never commit this token.
+
+## Running the CLI
+
+```bash
 python main.py
 ```
 
-Para obter um token, é necessário se cadastrar no [portal da AgroAPI](https://www.agroapi.cnptia.embrapa.br/portal/).
+The interactive menu provides a new planting-window query, query history, municipality comparison, and history statistics.
 
----
+## Repository Structure
 
-## Estrutura do projeto
-
-```
+```text
 abr/
-├── main.py              # CLI principal (menu, validações, histórico)
-├── teste.api.py         # Script de testes da integração com a API
-├── .gitignore
+├── main.py           # Interactive menu and planting-window workflow
+├── api.py            # Municipality and ZARC API integration
+├── zarc.py           # Date and ten-day-period calculations
+├── comparacao.py     # Municipality comparison workflow
+├── historico.py      # Local query history
+├── estatistica.py    # Summary statistics and ASCII charts
+├── teste.api.py      # Standalone API exploration script
+├── bugs.md           # Maintainer notes for known issues
 └── README.md
 ```
 
-Arquivos gerados em tempo de execução (não versionados):
-- `cache_zarc.json` — cache local dos dados da API
-- `historico.csv` — registro das consultas do usuário
-- `.env` — credenciais da API
-
----
+Runtime files such as `.env`, API caches, and query-history CSV files are excluded from version control.
 
 ## Roadmap
 
-- **V2** — Expandir a cobertura para outras cidades de Goiás e incluir novas safras
-- **V3** — Adicionar módulo de previsão de custos, integrando com o PPL da IC para recomendar qual safra plantar de acordo com as variáveis de decisão do produtor (maximizar lucro)
-- **V4+** — Substituir consultas por modelos treinados de IA para tarefas de predição mais precisas, evoluindo de consultas de API para modelagem própria
-- **Longo prazo** — Interface web, validação com produtores reais e possível aplicação de otimização quântica em problemas de escala maior
+- broaden crop, harvest-season, soil, and risk-level support;
+- improve automated testing and error handling around the external API;
+- explore cost models and mathematical optimization for agricultural decisions;
+- consider a web interface after the command-line workflow is stable;
+- validate future decision-support assumptions with domain specialists.
 
-O ritmo dessas versões depende diretamente do aprofundamento dos meus estudos em Álgebra Linear, Programação Linear e IA — o projeto cresce conforme a base teórica avança.
+These are directions for future study, not completed features.
 
----
+## Data Sources
 
-## Fontes de dados
-
-- [Portal ZARC — Ministério da Agricultura](https://mapa-indicadores.agricultura.gov.br/publico/extensions/Zarc/Zarc.html)
+- [ZARC portal — Brazilian Ministry of Agriculture](https://mapa-indicadores.agricultura.gov.br/publico/extensions/Zarc/Zarc.html)
 - [AgroAPI Agritec — Embrapa](https://www.agroapi.cnptia.embrapa.br/)
 
----
+## Author
 
-## Autor
+Renato Morais Mundim Filho — Computer Science student and undergraduate researcher at PUC Goiás.
 
-**Renato Morais Mundim Filho**
-
-Estudante de Ciência da Computação na PUC-GO (6º período), com foco em Computação Quântica — atualmente minha área de maior interesse. Em paralelo, estudo Álgebra Linear e Programação Linear através de um projeto de iniciação científica na faculdade, aplicando esses conceitos em Python. Também estudo IA, ainda em nível básico.
-
-Próximos objetivos técnicos: aprofundar em Django, APIs e banco de dados.
-
-- [LinkedIn](https://www.linkedin.com/in/renato-morais-mundim-filho-88919238b/)
 - [GitHub](https://github.com/uzoom333)
+- [LinkedIn](https://www.linkedin.com/in/renato-morais-mundim-filho-88919238b/)
 
----
+## License
 
-## Licença
-
-MIT
+This project is distributed under the MIT License.
