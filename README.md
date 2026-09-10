@@ -36,6 +36,45 @@ The underlying records come from an external public service and may be unavailab
 
 ## Installation
 
+### Quick start — demo mode (no credentials needed)
+
+ABR ships with a small set of real ZARC records under `demo/`, so the application
+runs immediately after cloning. No `.env`, no API token, no registration:
+
+```bash
+git clone https://github.com/uzoom333/abr.git
+cd abr
+
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install requests python-dotenv
+
+python main.py
+```
+
+When no valid `ACCESS_TOKEN` is found, ABR starts in **demo mode** and prints a
+notice at startup. Every feature works — municipality search, planting-window
+checks, comparison, history, and statistics — but the data is limited to the
+municipalities bundled in `demo/`:
+
+| IBGE code | Municipality |
+|-----------|--------------|
+| 5208509   | Goiandira    |
+| 5208707   | Goiânia      |
+| 5209705   | Hidrolândia  |
+| 5211909   | Jataí        |
+| 5218805   | Rio Verde    |
+
+These are real records retrieved from the AgroAPI, not synthetic values, and they
+are a frozen snapshot: they are not refreshed and may fall behind the official
+publications. Searching for any other municipality returns no results in demo mode.
+
+### Full installation (all 245 municipalities in Goiás)
+
+For live data across the whole state, provide an AgroAPI token as described below.
+As soon as a valid `ACCESS_TOKEN` is present, ABR leaves demo mode automatically
+and queries the API — no flags or code changes required.
+
 ```bash
 git clone https://github.com/uzoom333/abr.git
 cd abr
@@ -78,6 +117,7 @@ abr/
 ├── comparacao.py     # Municipality comparison workflow
 ├── historico.py      # Local query history
 ├── estatistica.py    # Summary statistics and ASCII charts
+├── demo/             # Bundled sample data used when no API token is present
 ├── teste.api.py      # Standalone API exploration script
 ├── bugs.md           # Maintainer notes for known issues
 └── README.md

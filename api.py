@@ -21,11 +21,63 @@ url = "https://api.cnptia.embrapa.br/agritec/v2/zoneamento"
 
 
 # ============================================
+# MODO DEMO
+# ============================================
+
+# Diretório onde este arquivo mora. Usado pros arquivos de demo, assim o
+# programa roda de qualquer lugar, não só de dentro da pasta do projeto.
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+PASTA_DEMO = os.path.join(BASE_DIR, "demo")
+
+DEMO_MUNICIPIOS = os.path.join(PASTA_DEMO, "demo_municipios.json")
+DEMO_ZARC = os.path.join(PASTA_DEMO, "demo_zarc.json")
+
+# Valores que aparecem em .env.example e não valem como token de verdade
+PLACEHOLDERS = {"", "seu_token_aqui", "coloque_seu_token_aqui", "changeme"}
+
+
+def token_valido():
+    """True se existe um ACCESS_TOKEN utilizável no ambiente."""
+    if token is None:
+        return False
+    return token.strip() not in PLACEHOLDERS
+
+
+MODO_DEMO = not token_valido()
+
+
+def aviso_modo_demo():
+    """Imprime o aviso de modo demo. Chamado uma vez, na inicialização."""
+    if not MODO_DEMO:
+        return
+    print("=" * 60)
+    print("⚠️  MODO DEMO ATIVO — usando dados de exemplo.")
+    print("   Para dados completos e atualizados, configure o .env")
+    print("   com seu ACCESS_TOKEN da AgroAPI (veja o README).")
+    print("=" * 60)
+    print()
+
+
+def carrega_json_demo(caminho):
+    """Lê um arquivo de dados da pasta demo/. Erro claro se estiver faltando."""
+    if not os.path.exists(caminho):
+        raise FileNotFoundError(
+            f"Arquivo de demo não encontrado: {caminho}\n"
+            "A pasta demo/ faz parte do repositório — recupere com 'git checkout demo/'."
+        )
+    with open(caminho, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+# ============================================
 # BUSCA DE MUNICÍPIOS
 # ============================================
 
 def busca_municipios_go():
     """Retorna lista dos municipios de GO, usando cache local"""
+    if MODO_DEMO:
+        return carrega_json_demo(DEMO_MUNICIPIOS)
+
     arquivo_cache = "cache_municipios.json"
 
     if os.path.exists(arquivo_cache):
@@ -98,6 +150,14 @@ def pega_zarc(codigo_ibge):
         "GRUPO II": "medio",
         "GRUPO III": "tardio"
     }
+
+    if MODO_DEMO:
+        dados_demo = carrega_json_demo(DEMO_ZARC)
+        if str(codigo_ibge) not in dados_demo:
+            print(f"⚠️ Cidade {codigo_ibge} não está incluída nos dados de demo")
+            return None
+        print(f"🎭 Demo: cidade {codigo_ibge}")
+        return dados_demo[str(codigo_ibge)]
 
     arquivo_cache = "cache_zarc.json"
 

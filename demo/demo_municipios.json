@@ -1,0 +1,52 @@
+[
+  {
+    "codigoIBGE": 5208509,
+    "nome": "GOIANDIRA",
+    "uf": "GO",
+    "latitude": -18.1208,
+    "longitude": -48.1387,
+    "regiaoSoja": "3",
+    "regiaoTrigo": "4",
+    "dataAtualizacao": "2018-05-02"
+  },
+  {
+    "codigoIBGE": 5208707,
+    "nome": "GOIANIA",
+    "uf": "GO",
+    "latitude": -16.6421,
+    "longitude": -49.2749,
+    "regiaoSoja": "3",
+    "regiaoTrigo": "4",
+    "dataAtualizacao": "2018-05-02"
+  },
+  {
+    "codigoIBGE": 5209705,
+    "nome": "HIDROLANDIA",
+    "uf": "GO",
+    "latitude": -17.0126,
+    "longitude": -49.2656,
+    "regiaoSoja": "3",
+    "regiaoTrigo": "4",
+    "dataAtualizacao": "2018-05-02"
+  },
+  {
+    "codigoIBGE": 5211909,
+    "nome": "JATAI",
+    "uf": "GO",
+    "latitude": -17.9092,
+    "longitude": -51.7315,
+    "regiaoSoja": "3",
+    "regiaoTrigo": "4",
+    "dataAtualizacao": "2018-05-02"
+  },
+  {
+    "codigoIBGE": 5218805,
+    "nome": "RIO VERDE",
+    "uf": "GO",
+    "latitude": -17.739,
+    "longitude": -51.0378,
+    "regiaoSoja": "3",
+    "regiaoTrigo": "4",
+    "dataAtualizacao": "2018-05-02"
+  }
+]

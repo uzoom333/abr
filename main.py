@@ -1,7 +1,7 @@
 from datetime import date
 from comparacao import comparar_cidades
 from zarc import qual_decendio, esta_na_janela, proximo_decendio_valido
-from api import escolher_municipio, pega_zarc
+from api import escolher_municipio, pega_zarc, aviso_modo_demo
 from zarc import qual_decendio, esta_na_janela
 from historico import salvar_consulta, mostrar_historico
 from estatistica import mostrar_estatisticas
@@ -143,4 +143,5 @@ def menu():
 
 
 if __name__ == "__main__":
+    aviso_modo_demo()
     menu()
