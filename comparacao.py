@@ -121,12 +121,12 @@ def comparar_cidades():
             restantes = ultimo - decendio_data
         else:
             proximo = proximo_decendio_valido(decendio_data, janela_ciclo)
-        if proximo is not None:
-            status = "antes"
-            restantes = proximo - decendio_data
-        else:
-            status = "passou"
-            restantes = None
+            if proximo is not None:
+                status = "antes"
+                restantes = proximo - decendio_data
+            else:
+                status = "passou"
+                restantes = None
 
         # 7e. Adiciona ao resultado
         resultados.append({
