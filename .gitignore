@@ -1,8 +1,10 @@
 .env
 venv/
+venv.broken-py312/
 __pycache__/
 *.pyc
 historico_v1.csv
 cache_zarc.json
 cache_municipios.json
 historico.csv
+*.xlsx

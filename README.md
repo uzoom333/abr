@@ -1,4 +1,4 @@
-# ABR
+# ABR — V2
 
 ABR is an agricultural decision-support command-line application that uses official Brazilian Agricultural Climate Risk Zoning (ZARC) data to evaluate soybean planting windows in Goiás.
 
@@ -6,13 +6,14 @@ ABR is an agricultural decision-support command-line application that uses offic
 
 The application connects to Embrapa's AgroAPI, searches municipalities in Goiás, and checks a proposed planting date against the available ZARC windows for early-, medium-, or late-cycle soybeans. It is an educational software project: its output supports exploration of public zoning data and does not replace professional agronomic advice.
 
-Current features include:
+Current features (V2) include:
 
-- municipality search across Goiás;
+- support for every municipality in Goiás (245 with an API token; five bundled in demo mode);
 - planting-window checks by soybean cycle and date;
-- comparison of up to ten municipalities;
+- comparison between cities, up to ten at a time;
 - local query history;
-- history statistics with ASCII charts;
+- usage statistics over the history, with ASCII charts;
+- export of the history to Excel (`.xlsx`);
 - local caching to reduce API calls.
 
 ## Motivation
@@ -32,6 +33,7 @@ The underlying records come from an external public service and may be unavailab
 - Python 3.12
 - [Requests](https://pypi.org/project/requests/) for HTTP requests
 - [python-dotenv](https://pypi.org/project/python-dotenv/) for local environment configuration
+- [openpyxl](https://pypi.org/project/openpyxl/) for Excel export
 - [AgroAPI Agritec v2](https://www.agroapi.cnptia.embrapa.br/) for ZARC data
 
 ## Installation
@@ -47,14 +49,14 @@ cd abr
 
 python3 -m venv .venv
 source .venv/bin/activate
-python -m pip install requests python-dotenv
+python -m pip install -r requirements.txt
 
 python main.py
 ```
 
 When no valid `ACCESS_TOKEN` is found, ABR starts in **demo mode** and prints a
 notice at startup. Every feature works — municipality search, planting-window
-checks, comparison, history, and statistics — but the data is limited to the
+checks, comparison, history, statistics, and Excel export — but the data is limited to the
 municipalities bundled in `demo/`:
 
 | IBGE code | Municipality |
@@ -82,7 +84,7 @@ cd abr
 python3 -m venv .venv
 source .venv/bin/activate
 
-python -m pip install requests python-dotenv
+python -m pip install -r requirements.txt
 ```
 
 On Windows PowerShell, activate the environment with:
@@ -105,7 +107,9 @@ An access token is available after registration in the [AgroAPI portal](https://
 python main.py
 ```
 
-The interactive menu provides a new planting-window query, query history, municipality comparison, and history statistics.
+The interactive menu provides a new planting-window query, query history, municipality comparison, history statistics, and Excel export.
+
+Exporting writes a `historico_YYYY-MM-DD_HH-MM.xlsx` file in the repository root. These files are generated artefacts and are not tracked by Git.
 
 ## Repository Structure
 
@@ -117,13 +121,15 @@ abr/
 ├── comparacao.py     # Municipality comparison workflow
 ├── historico.py      # Local query history
 ├── estatistica.py    # Summary statistics and ASCII charts
+├── exportacao.py     # Excel export of the query history
 ├── demo/             # Bundled sample data used when no API token is present
 ├── teste.api.py      # Standalone API exploration script
+├── requirements.txt  # Python dependencies
 ├── bugs.md           # Maintainer notes for known issues
 └── README.md
 ```
 
-Runtime files such as `.env`, API caches, and query-history CSV files are excluded from version control.
+Runtime files such as `.env`, API caches, query-history CSV files, and generated `.xlsx` exports are excluded from version control.
 
 ## Roadmap
 
