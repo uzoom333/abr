@@ -6,6 +6,7 @@ from zarc import qual_decendio, esta_na_janela
 from historico import salvar_consulta, mostrar_historico
 from estatistica import mostrar_estatisticas
 from exportacao import exportar_excel
+from financeiro import analisar_financeiro
 
 meses = {
     1: "janeiro", 2: "fevereiro", 3: "março", 4: "abril",
@@ -127,18 +128,20 @@ def main():
 
 def menu():
     while True:
-        escolha = input("Escolha qual opçao deseja (1-> Nova Consulta,2-> Ver historico,3-> Comparar,4-> Ver estatisticas,5-> Exportar historico para Excel,6-> Saindo do menu)!")
+        escolha = input("Escolha qual opçao deseja (1-> Nova Consulta,2-> Ver historico,3-> Comparar,4-> Ver estatisticas,5-> Exportar historico para Excel,6-> Analise financeira,7-> Saindo do menu)!")
         if escolha == "1":
             main()
         elif escolha == "2":
             mostrar_historico()
         elif escolha == "3":
-            comparar_cidades()   
-        elif escolha == "4":     
+            comparar_cidades()
+        elif escolha == "4":
             mostrar_estatisticas()
         elif escolha == "5":
             exportar_excel()
         elif escolha == "6":
+            analisar_financeiro()
+        elif escolha == "7":
             print("Saindo do menu")
             break
         else:
