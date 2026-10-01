@@ -1,0 +1,10 @@
+{
+  "aviso": "ILUSTRATIVO. Janelas de milho 2ª safra montadas à mão para o modo demo, NÃO vêm da AgroAPI. Decêndios do calendário (1 = 1º dec. jan). Formato: {codigoIBGE: {solo: [decêndios]}}.",
+  "cidades": {
+    "5211909": {"AD2": [1, 2, 3, 4, 5, 6, 7]},
+    "5218805": {"AD2": [1, 2, 3, 4, 5, 6, 7]},
+    "5208509": {"AD2": [1, 2, 3, 4, 5]},
+    "5209705": {"AD2": [1, 2, 3, 4, 5]},
+    "5208707": {"AD2": [1, 2, 3, 4, 5]}
+  }
+}

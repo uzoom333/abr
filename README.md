@@ -109,6 +109,21 @@ python main.py
 
 The interactive menu provides a new planting-window query, query history, municipality comparison, history statistics, and Excel export.
 
+### Soybean + second-crop corn optimization (in progress)
+
+Menu option 7 builds a linear program (`otimizacao.py`, solved with PuLP/CBC) that plans soybean
+planting by cycle and ten-day period and the second-crop corn (*milho safrinha*) that follows it,
+over one crop year, maximizing profit. It covers several cities and soil classes (AD1–AD6), a
+planter-capacity limit per ten-day period, and soybean → corn succession modelled as a flow balance.
+The report shows the plan and the shadow prices of each binding limit.
+
+Assumptions still to be checked are grouped at the top of `otimizacao.py` (cycle lengths, the
+harvest-to-planting gap, corn yield loss per ten-day delay, default planter). In demo mode the corn
+windows in `demo/demo_zarc_milho.json` are **illustrative, written by hand, not AgroAPI records**.
+With a token, set `ID_CULTURA_MILHO` in `.env` to the AgroAPI id for second-crop corn.
+
+`python teste_otimizacao.py` checks the model against a small instance solvable by hand.
+
 Exporting writes a `historico_YYYY-MM-DD_HH-MM.xlsx` file in the repository root. These files are generated artefacts and are not tracked by Git.
 
 ## Repository Structure
@@ -122,6 +137,9 @@ abr/
 ├── historico.py      # Local query history
 ├── estatistica.py    # Summary statistics and ASCII charts
 ├── exportacao.py     # Excel export of the query history
+├── financeiro.py     # Profit comparison by city and cycle
+├── otimizacao.py     # Linear program: soybean + second-crop corn plan
+├── teste_otimizacao.py # Hand-checkable test of the linear program
 ├── demo/             # Bundled sample data used when no API token is present
 ├── teste.api.py      # Standalone API exploration script
 ├── requirements.txt  # Python dependencies
