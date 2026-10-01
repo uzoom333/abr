@@ -9,3 +9,6 @@ cache_municipios.json
 historico.csv
 *.xlsx
 cache_zarc_bruto.json
+rag/pdfs/
+rag/texto/
+rag/indice/
