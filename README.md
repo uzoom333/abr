@@ -124,6 +124,22 @@ With a token, set `ID_CULTURA_MILHO` in `.env` to the AgroAPI id for second-crop
 
 `python teste_otimizacao.py` checks the model against a small instance solvable by hand.
 
+### Document search for the RAG (in progress)
+
+`rag/` holds the retrieval side of a RAG over public documents (ZARC ordinances for Goiás,
+Embrapa technical notes, CONAB cost methodology, planter performance studies), meant to
+explain the optimizer's output with citations. Steps, run from the repository root:
+
+```bash
+pip install torch --index-url https://download.pytorch.org/whl/cpu   # CPU-only torch, much smaller
+python rag/baixar.py     # download the PDFs listed in rag/fontes.csv
+python rag/extrair.py    # PDF -> text, one block per page (needs poppler's pdftotext)
+python rag/indexar.py    # chunks + embeddings (intfloat/multilingual-e5-small)
+python rag/buscar.py "qual a duração dos ciclos da soja no ZARC?"
+```
+
+`rag/avaliacao.csv` lists questions with their known source page, for measuring retrieval.
+
 Exporting writes a `historico_YYYY-MM-DD_HH-MM.xlsx` file in the repository root. These files are generated artefacts and are not tracked by Git.
 
 ## Repository Structure
@@ -140,6 +156,7 @@ abr/
 ├── financeiro.py     # Profit comparison by city and cycle
 ├── otimizacao.py     # Linear program: soybean + second-crop corn plan
 ├── teste_otimizacao.py # Hand-checkable test of the linear program
+├── rag/              # Document search (download, extraction, index, retrieval, evaluation set)
 ├── demo/             # Bundled sample data used when no API token is present
 ├── teste.api.py      # Standalone API exploration script
 ├── requirements.txt  # Python dependencies
