@@ -31,13 +31,17 @@ from zarc import para_ano_safra, para_calendario, nome_decendio
 # HIPÓTESES (conferir e ajustar)
 # ============================================
 
-# Duração do plantio à colheita, em decêndios. Grupo I/II/III do ZARC em GO.
-DURACAO_CICLO = {"precoce": 11, "medio": 12, "tardio": 13}
+# Duração do plantio à colheita, em decêndios. A portaria do ZARC da soja em GO
+# (SPA/MAPA 198/2026, item 1.9.2) simula ciclos de 100, 115 e 130 dias; 115 dias
+# arredonda para cima porque a área só libera depois da colheita.
+DURACAO_CICLO = {"precoce": 10, "medio": 12, "tardio": 13}
 
 # k: decêndios entre colher a soja e a área estar pronta para o milho.
 INTERVALO_COLHEITA_MILHO = 1
 
 # Produtividade do milho cai a cada decêndio de atraso em relação ao início da janela.
+# A Embrapa cita ~38 kg/ha por dia de atraso em Rio Verde a partir de 15/01, perto de
+# 6% por decêndio para 110 sc/ha. Ficou 5% até conferir na fonte.
 PERDA_MILHO_POR_DECENDIO = 0.05
 
 # Plantadeira padrão: 12 linhas a 0,5 m, 6 km/h, 70% de eficiência de campo,
