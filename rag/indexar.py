@@ -40,12 +40,12 @@ def divide_em_chunks(texto, tamanho, sobreposicao):
     """Janela deslizante de palavras. Cada chunk tem até `tamanho` palavras e
     começa `tamanho - sobreposicao` palavras depois do anterior."""
     palavras = texto.split()
-    passo = ???
+    passo = tamanho - sobreposicao
     chunks = []
     for inicio in range(0, len(palavras), passo):
-        pedaco = palavras[???:???]
+        pedaco = palavras[inicio:inicio + tamanho]
         chunks.append(" ".join(pedaco))
-        if ???:      # o último chunk já chegou ao fim do texto
+        if inicio + tamanho >= len(palavras):      # o último chunk já chegou ao fim do texto
             break
     return chunks
 
@@ -59,8 +59,8 @@ def main():
 
     modelo = SentenceTransformer(MODELO)
     # O e5 exige um prefixo diferente para documento e para pergunta (veja o model card)
-    vetores = modelo.encode([??? + c["texto"] for c in chunks],
-                            normalize_embeddings=???, show_progress_bar=True)
+    vetores = modelo.encode(["passage: " + c["texto"] for c in chunks],
+                            normalize_embeddings=True, show_progress_bar=True)
 
     os.makedirs(PASTA_INDICE, exist_ok=True)
     np.save(os.path.join(PASTA_INDICE, "vetores.npy"), vetores)
