@@ -32,14 +32,14 @@ def tokeniza(texto):
 
 def busca_vetorial(pergunta, modelo, vetores, k):
     """Índices dos k chunks com maior similaridade de cosseno com a pergunta."""
-    q = modelo.encode(??? + pergunta, normalize_embeddings=True)
-    similaridades = ???              # uma similaridade por chunk; dica: por que normalizamos?
-    return list(np.argsort(???)[:k]) # argsort ordena do menor para o maior
+    q = modelo.encode("query: " + pergunta, normalize_embeddings=True)
+    similaridades = vetores @ q             # uma similaridade por chunk; dica: por que normalizamos?
+    return list(np.argsort(-similaridades)[:k]) # argsort ordena do menor para o maior
 
 
 def busca_bm25(pergunta, bm25, k):
     """Índices dos k chunks com maior pontuação BM25."""
-    pontuacoes = bm25.get_scores(???)
+    pontuacoes = bm25.get_scores(tokeniza(pergunta))
     return list(np.argsort(-pontuacoes)[:k])
 
 
@@ -48,7 +48,7 @@ def funde(listas, k, c=60):
     pontos = {}
     for lista in listas:
         for posicao, indice in enumerate(lista, start=1):
-            pontos[indice] = pontos.get(indice, 0) + ???
+            pontos[indice] = pontos.get(indice, 0) + 1/(c + posicao)
     return sorted(pontos, key=pontos.get, reverse=True)[:k]
 
 
