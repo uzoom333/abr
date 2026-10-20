@@ -18,19 +18,25 @@ ARQUIVO_AVALIACAO = os.path.join(os.path.dirname(os.path.abspath(__file__)), "av
 
 
 def carrega_avaliacao():
-    """Lista de dicts, um por linha: {'pergunta': ..., 'arquivo': ..., 'pagina': ..., 'resposta': ...}"""
+    """Lista de dicts, um por linha: {'pergunta': ..., 'locais': [(arquivo, pagina), ...], 'resposta': ...}
+
+    No CSV, `locais` é "arquivo.pdf:pagina", com ";" separando quando a resposta
+    está em mais de um lugar."""
     with open(ARQUIVO_AVALIACAO, encoding="utf-8") as f:
-        return list(csv.DictReader(f))
+        linhas = list(csv.DictReader(f))
+    for linha in linhas:
+        pares = [local.rsplit(":", 1) for local in linha["locais"].split(";")]
+        linha["locais"] = [(arquivo, int(pagina)) for arquivo, pagina in pares]
+    return linhas
 
 
-def acertou(indices, chunks, arquivo, pagina):
-    """True se algum dos chunks devolvidos é do arquivo e da página certos."""
+def acertou(indices, chunks, locais):
+    """True se algum dos chunks devolvidos é de um dos (arquivo, página) do gabarito."""
     for i in indices:
         c = chunks[i]
-        if c["arquivo"] == arquivo and c["pagina"] == pagina :                              # dica: confira o tipo de cada lado com print(repr(...))
+        if (c["arquivo"], c["pagina"]) in locais:
             return True
     return False
-    
 
 
 def main():
@@ -48,10 +54,10 @@ def main():
 
     acertos = {nome: 0 for nome in buscas}
     for linha in perguntas:
-        print(f"\n{linha['pergunta']}  ->  {linha['arquivo']} p.{linha['pagina']}")
+        print(f"\n{linha['pergunta']}  ->  {', '.join(f'{a} p.{p}' for a, p in linha['locais'])}")
         for nome, busca in buscas.items():
             indices = busca(linha['pergunta'])
-            ok = acertou(indices, chunks, linha['arquivo'], int(linha['pagina']))
+            ok = acertou(indices, chunks, linha['locais'])
             if ok:
                 acertos[nome] += 1
             print(f"  {nome:9} {'ACERTOU' if ok else 'errou'}")

@@ -19,8 +19,8 @@ PASTA_TEXTO = os.path.join(PASTA, "texto")
 PASTA_INDICE = os.path.join(PASTA, "indice")
 
 MODELO = "intfloat/multilingual-e5-small"
-TAMANHO_CHUNK = 250   # palavras (~375 tokens; o e5-small corta em 512)
-SOBREPOSICAO = 40     # palavras repetidas entre um chunk e o seguinte
+TAMANHO_CHUNK = 150   # palavras (~225 tokens; o e5-small corta em 512)
+SOBREPOSICAO = 20   # palavras repetidas entre um chunk e o seguinte
 
 
 def carrega_paginas():
