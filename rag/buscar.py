@@ -69,7 +69,7 @@ def main():
     pergunta = " ".join(sys.argv[1:]) or "qual a duração dos ciclos da soja no ZARC?"
     vetores, chunks = carrega_indice()
     modelo = SentenceTransformer(MODELO)
-    bm25 = BM25Okapi([tokeniza(c["texto"]) for c in chunks])
+    bm25 = BM25Okapi([tokeniza(c["texto_busca"]) for c in chunks])
 
     k = 5
     mostra("vetorial", busca_vetorial(pergunta, modelo, vetores, k), chunks)
