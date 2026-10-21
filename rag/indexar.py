@@ -3,10 +3,13 @@
 Lê rag/texto/*.txt (saída do extrair.py) e grava em rag/indice/:
   vetores.npy   matriz (n_chunks × 384), uma linha por chunk
   chunks.json   texto, arquivo e página de cada chunk (mesma ordem das linhas)
+Cada chunk leva também `texto_busca`: o título curto do documento (fontes.csv) + o texto.
+É ele que vira vetor e entra no BM25; `texto` continua limpo para mostrar e citar.
 Rodar da raiz do projeto: python rag/indexar.py
 
 ESQUELETO: preencha os ???. Tudo que não tem ??? já está pronto.
 """
+import csv
 import json
 import os
 import re
@@ -17,6 +20,7 @@ from sentence_transformers import SentenceTransformer
 PASTA = os.path.dirname(os.path.abspath(__file__))
 PASTA_TEXTO = os.path.join(PASTA, "texto")
 PASTA_INDICE = os.path.join(PASTA, "indice")
+FONTES = os.path.join(PASTA, "fontes.csv")
 
 MODELO = "intfloat/multilingual-e5-small"
 TAMANHO_CHUNK = 150   # palavras (~225 tokens; o e5-small corta em 512)
@@ -50,16 +54,29 @@ def divide_em_chunks(texto, tamanho, sobreposicao):
     return chunks
 
 
+def carrega_titulos():
+    """{arquivo.pdf: título curto} a partir do fontes.csv.
+
+    Título, e não a descrição do conteúdo: a descrição repetida em todos os chunks
+    de um documento grande deixava todos parecidos (a CONAB p.17 sumiu assim)."""
+    with open(FONTES, encoding="utf-8") as f:
+        return {linha["arquivo"]: linha["titulo"] for linha in csv.DictReader(f)}
+
+
 def main():
+    titulos = carrega_titulos()
     chunks = []
     for arquivo, pagina, texto in carrega_paginas():
         for pedaco in divide_em_chunks(texto, TAMANHO_CHUNK, SOBREPOSICAO):
             if len(pedaco.split()) >= 20:   # descarta cabeçalho/rodapé solto
-                chunks.append({"arquivo": arquivo, "pagina": pagina, "texto": pedaco})
+                # o cabeçalho diz de que documento o chunk veio, coisa que o trecho sozinho não diz
+                cabecalho = titulos[arquivo]
+                chunks.append({"arquivo": arquivo, "pagina": pagina, "texto": pedaco,
+                               "texto_busca": cabecalho + ". " + pedaco})
 
     modelo = SentenceTransformer(MODELO)
     # O e5 exige um prefixo diferente para documento e para pergunta (veja o model card)
-    vetores = modelo.encode(["passage: " + c["texto"] for c in chunks],
+    vetores = modelo.encode(["passage: " + c["texto_busca"] for c in chunks],
                             normalize_embeddings=True, show_progress_bar=True)
 
     os.makedirs(PASTA_INDICE, exist_ok=True)

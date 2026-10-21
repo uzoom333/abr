@@ -42,7 +42,7 @@ def acertou(indices, chunks, locais):
 def main():
     vetores, chunks = carrega_indice()
     modelo = SentenceTransformer(MODELO)
-    bm25 = BM25Okapi([tokeniza(c["texto"]) for c in chunks])
+    bm25 = BM25Okapi([tokeniza(c["texto_busca"]) for c in chunks])
     perguntas = carrega_avaliacao()
 
     k = 5
