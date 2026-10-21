@@ -1,5 +1,32 @@
 pergunta,locais,resposta
 qual a duração dos ciclos de soja que o ZARC simula em Goiás?,portaria_soja_go_2026.pdf:2,"100, 115 e 130 dias"
-quais os limites de água disponível da classe AD4?,portaria_milho2safra_go_2026.pdf:3;portaria_soja_go_2026.pdf:2;nota_classes_solo_zarc_2023.pdf:2;classes_agua_disponivel_zarc.pdf:5,"de 0,80 a 1,06 mm/cm"
+quais os limites de água disponível da classe AD4?,portaria_milho2safra_go_2026.pdf:3;portaria_soja_go_2026.pdf:2;nota_classes_solo_zarc_2023.pdf:2;classes_agua_disponivel_zarc.pdf:5;metodologia_zarc_milho.pdf:14,"de 0,80 a 1,06 mm/cm"
 qual a eficiência de campo considerada boa para uma semeadora em plantio direto?,desempenho_semeadura_safrinha.pdf:8,"50 a 75%, a 3–7 km/h"
-como a CONAB calcula o custo de produção?,conab_metodologia_custo.pdf:17,"matriz de coeficientes técnicos × vetor de preços dos fatores"
+como a CONAB calcula o custo de produção?,conab_metodologia_custo.pdf:17,matriz de coeficientes técnicos × vetor de preços dos fatores
+quando o espaço entre duas sementes na fileira passa a contar como falha?,plantabilidade_embrapa.pdf:5;plantabilidade_embrapa.pdf:11,"quando é maior que 1,5 vez o espaçamento ideal (duplo: menor que 0,5 vez)"
+até que velocidade da plantadeira a soja produziu mais nos ensaios de Santa Maria?,plantabilidade_embrapa.pdf:14;plantabilidade_embrapa.pdf:15,"até 4,8 km/h"
+"acima de 6 km/h, que tipo de semeadora mantém a precisão e até que velocidade?",plantabilidade_embrapa.pdf:12,"pneumática, até 8 km/h (mecânica de disco: 4 a 6 km/h)"
+"quantas plantas a soja pode perder sem cair a produtividade, se solo e clima ajudarem?",plantabilidade_embrapa.pdf:9;plantabilidade_embrapa.pdf:10,perto de 25% ou um pouco mais
+quantos dias sem água no florescimento já tiram mais de 20% da produção do milho?,ecofisiologia_milho_2safra.pdf:10,2 dias (4 a 8 dias tiram mais de 50%)
+"qual soma térmica separa milho superprecoce, precoce e normal?",ecofisiologia_milho_2safra.pdf:13;desenvolvimento_milho_2safra.pdf:24,fontes divergem: <825 / 830-900 / >900 GD (ecofisiologia) ou 780-830 / 831-890 / >890 GD (desenvolvimento)
+qual a temperatura ideal do milho de dia e de noite?,ecofisiologia_milho_2safra.pdf:12;portaria_milho2safra_go_2026.pdf:1,fontes divergem: 25-28 °C dia e 18-19 °C noite (Embrapa) ou 30-33 °C dia e 17-23 °C noite (portaria)
+quanto o Sistema Antecipe rendeu a mais por dia de antecipação em Rio Verde?,ecofisiologia_milho_2safra.pdf:19,"86,5 kg/ha por dia (17 dias de antecipação, safra 2020/21)"
+quanto produziu o híbrido AG7098 PRO2 semeado em 6/12/2016 em Sete Lagoas?,ecofisiologia_milho_2safra.pdf:16,12.475 kg/ha
+que modelo de simulação a Embrapa usou no ZarcPro-Milho?,metodologia_zarc_milho.pdf:10;metodologia_zarc_milho.pdf:11,"CSM-CERES-Maize, da plataforma DSSAT"
+quantos cenários e quantos valores de produtividade o ZarcPro-Milho simulou?,metodologia_zarc_milho.pdf:19,648 cenários e 22.032 valores (34 anos)
+quanta umidade o modelo exige no solo AD1 para fazer a semeadura?,metodologia_zarc_milho.pdf:18,"pelo menos 80% da CAD até 0,30 m, ou 9,6 mm"
+o que faz um município ser considerado apto no zoneamento?,metodologia_zarc_milho.pdf:20;portaria_soja_go_2026.pdf:2,ter pelo menos 20% da área dentro do critério de risco
+quantos anos de dados climáticos entram no ZARC do milho safrinha de Goiás?,portaria_milho2safra_go_2026.pdf:2,"30 anos, de 1992 a 2022"
+até que estádio o ponto de crescimento do milho fica protegido debaixo da terra?,desenvolvimento_milho_2safra.pdf:13;desenvolvimento_milho_2safra.pdf:15;desenvolvimento_milho_2safra.pdf:26;ecofisiologia_milho_2safra.pdf:19;metodologia_zarc_milho.pdf:10,"fontes divergem: até V5 (desenvolvimento), até V6 (ecofisiologia), até cerca de V3 (ZarcPro)"
+como se calcula o graus-dia do milho quando a máxima passa de 32 °C?,desenvolvimento_milho_2safra.pdf:24,"((Tmax + Tmin)/2) - 10, usando 32 °C no lugar da máxima e 10 °C se a mínima for menor"
+com quanto de umidade o grão de milho pode ser colhido e com quanto deve ser armazenado?,desenvolvimento_milho_2safra.pdf:14,colher com 18-25% se houver secagem; armazenar com 13-15%
+quantos milímetros de água o ZARC da soja considera armazenados num solo AD3?,portaria_soja_go_2026.pdf:2,42 mm (profundidade efetiva de raiz de 60 cm)
+lavoura irrigada precisa respeitar as datas de plantio do ZARC?,portaria_soja_go_2026.pdf:2;portaria_milho2safra_go_2026.pdf:2,não; o ZARC é para sequeiro
+qual o ISNA mínimo exigido na floração e enchimento de grãos da soja?,portaria_soja_go_2026.pdf:2,"0,55 (0,50 no estabelecimento)"
+quantos dias de ciclo tem o milho do Grupo II no ZARC de Goiás?,portaria_milho2safra_go_2026.pdf:2,de 110 a 130 dias
+por que cada classe de água disponível é 40% maior que a anterior?,classes_agua_disponivel_zarc.pdf:3;classes_agua_disponivel_zarc.pdf:4,para manter constante a diferença de risco entre uma classe e a seguinte
+como os solos eram classificados no ZARC antes da mudança para seis classes?,nota_classes_solo_zarc_2023.pdf:1;classes_agua_disponivel_zarc.pdf:2;metodologia_zarc_milho.pdf:13,"três tipos pelo teor de argila: 10-15%, 15-35% e 35% ou mais"
+em que profundidade deve ser tirada a amostra para classificar o solo pela AD?,nota_classes_solo_zarc_2023.pdf:2,de 0 a 40 cm (antes era 0 a 50 cm)
+como a CONAB estima quanto diesel um trator gasta por hora?,conab_metodologia_custo.pdf:11,"12% da potência em CV, em litros por hora"
+qual a diferença entre custo operacional e custo total na CONAB?,conab_metodologia_custo.pdf:8;conab_metodologia_custo.pdf:27,custo total = custo operacional + renda de fatores (remuneração do capital fixo e da terra)
+como se calcula a capacidade de campo teórica de uma semeadora?,desempenho_semeadura_safrinha.pdf:4,"largura de trabalho (m) × velocidade (km/h) / 10, em ha/h"
