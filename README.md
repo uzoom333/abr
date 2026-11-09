@@ -216,7 +216,7 @@ These are directions for future study, not completed features.
 
 ## Author
 
-Renato Morais Mundim Filho — Computer Science student and undergraduate researcher at PUC Goiás.
+Renato Morais Mundim Filho — Computer Science student.
 
 - [GitHub](https://github.com/uzoom333)
 - [LinkedIn](https://www.linkedin.com/in/renato-morais-mundim-filho-88919238b/)
