@@ -2,8 +2,6 @@
 
 LLM local pelo Ollama (precisa de `ollama serve` rodando).
 Rodar da raiz do projeto:  python rag/responder.py "quantos anos de dados o ZARC do milho usa?"
-
-ESQUELETO: preencha os 4 ???. Tudo que não tem ??? já está pronto.
 """
 import gc
 import sys

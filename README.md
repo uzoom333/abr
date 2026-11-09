@@ -1,4 +1,4 @@
-# ABR — V2
+# ABR
 
 ABR is an agricultural decision-support command-line application that uses official Brazilian Agricultural Climate Risk Zoning (ZARC) data to evaluate soybean planting windows in Goiás.
 
@@ -15,6 +15,11 @@ Current features (V2) include:
 - usage statistics over the history, with ASCII charts;
 - export of the history to Excel (`.xlsx`);
 - local caching to reduce API calls.
+
+In progress (V3):
+
+- a linear program that plans soybean and second-crop corn planting (see below);
+- a RAG over public agricultural documents, with retrieval measured against a 31-question answer key (see below).
 
 ## Motivation
 
@@ -124,21 +129,49 @@ With a token, set `ID_CULTURA_MILHO` in `.env` to the AgroAPI id for second-crop
 
 `python teste_otimizacao.py` checks the model against a small instance solvable by hand.
 
-### Document search for the RAG (in progress)
+### Document search and answers with citations — RAG (in progress)
 
-`rag/` holds the retrieval side of a RAG over public documents (ZARC ordinances for Goiás,
-Embrapa technical notes, CONAB cost methodology, planter performance studies), meant to
-explain the optimizer's output with citations. Steps, run from the repository root:
+`rag/` is a RAG over 10 public documents: the ZARC ordinances for soybean and second-crop corn in
+Goiás, Embrapa and MAPA notes on the six soil classes, the ZarcPro-Milho methodology, CONAB's
+production-cost methodology, and planter performance studies. The goal is to explain the
+optimizer's output with citations to the document and page. The sources are listed in
+`rag/fontes.csv`.
+
+How it works:
+
+1. `baixar.py` downloads the PDFs and `extrair.py` turns them into text, one block per page.
+2. `indexar.py` splits each page into 150-word chunks, adds the document title to each chunk and
+   computes embeddings with `intfloat/multilingual-e5-small`.
+3. `buscar.py` has three searches: vector (cosine similarity), BM25 (`rank_bm25`) and hybrid
+   (reciprocal rank fusion of the two).
+4. `avaliar.py` measures hit@5 against `avaliacao.csv`: 31 questions, each with the file and page
+   where the answer is. A hit means one of the five chunks returned is from one of those pages.
+5. `responder.py` sends the question and the retrieved chunks to a local LLM through Ollama and asks
+   for an answer citing document and page.
+
+Retrieval results (hit@5, 31 questions):
+
+| Search  | hit@5 |
+|---------|-------|
+| Vector  | 28/31 |
+| BM25    | 25/31 |
+| Hybrid  | 26/31 |
+
+Adding the document title to each chunk was the change that brought vector search to 28/31.
+Answer generation works end to end but has not been evaluated yet: in early tests the model
+sometimes cites the wrong page.
+
+Run from the repository root:
 
 ```bash
 pip install torch --index-url https://download.pytorch.org/whl/cpu   # CPU-only torch, much smaller
 python rag/baixar.py     # download the PDFs listed in rag/fontes.csv
 python rag/extrair.py    # PDF -> text, one block per page (needs poppler's pdftotext)
-python rag/indexar.py    # chunks + embeddings (intfloat/multilingual-e5-small)
+python rag/indexar.py    # chunks + embeddings
 python rag/buscar.py "qual a duração dos ciclos da soja no ZARC?"
+python rag/avaliar.py    # hit@5 of the three searches
+python rag/responder.py "quantos anos de dados o ZARC do milho usa?"   # needs `ollama serve`
 ```
-
-`rag/avaliacao.csv` lists questions with their known source page, for measuring retrieval.
 
 Exporting writes a `historico_YYYY-MM-DD_HH-MM.xlsx` file in the repository root. These files are generated artefacts and are not tracked by Git.
 
@@ -156,7 +189,7 @@ abr/
 ├── financeiro.py     # Profit comparison by city and cycle
 ├── otimizacao.py     # Linear program: soybean + second-crop corn plan
 ├── teste_otimizacao.py # Hand-checkable test of the linear program
-├── rag/              # Document search (download, extraction, index, retrieval, evaluation set)
+├── rag/              # RAG: download, extraction, index, three searches, hit@5 evaluation, answers via Ollama
 ├── demo/             # Bundled sample data used when no API token is present
 ├── teste.api.py      # Standalone API exploration script
 ├── requirements.txt  # Python dependencies

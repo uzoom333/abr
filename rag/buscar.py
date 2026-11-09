@@ -2,8 +2,6 @@
 
 Três buscas, para comparar: vetorial (embedding), lexical (BM25) e híbrida (as duas juntas).
 Rodar da raiz do projeto:  python rag/buscar.py "qual a duração dos ciclos da soja no ZARC?"
-
-ESQUELETO: preencha os ???. Tudo que não tem ??? já está pronto.
 """
 import json
 import os

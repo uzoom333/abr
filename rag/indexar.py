@@ -6,8 +6,6 @@ Lê rag/texto/*.txt (saída do extrair.py) e grava em rag/indice/:
 Cada chunk leva também `texto_busca`: o título curto do documento (fontes.csv) + o texto.
 É ele que vira vetor e entra no BM25; `texto` continua limpo para mostrar e citar.
 Rodar da raiz do projeto: python rag/indexar.py
-
-ESQUELETO: preencha os ???. Tudo que não tem ??? já está pronto.
 """
 import csv
 import json

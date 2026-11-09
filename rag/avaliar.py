@@ -3,8 +3,6 @@
 Para cada pergunta do avaliacao.csv, roda as três buscas e confere se algum dos
 k chunks devolvidos é do arquivo e da página onde a resposta está.
 Rodar da raiz do projeto:  python rag/avaliar.py
-
-ESQUELETO: preencha os ???. Tudo que não tem ??? já está pronto.
 """
 import csv
 import os
