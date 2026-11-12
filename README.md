@@ -146,8 +146,8 @@ How it works:
    (reciprocal rank fusion of the two).
 4. `avaliar.py` measures hit@5 against `avaliacao.csv`: 31 questions, each with the file and page
    where the answer is. A hit means one of the five chunks returned is from one of those pages.
-5. `responder.py` sends the question and the retrieved chunks to a local LLM through Ollama and asks
-   for an answer citing document and page.
+5. `responder.py` sends the question and the retrieved chunks to a local LLM through Ollama. The
+   model cites only the block number (`[Bloco 2]`); the code replaces it with the document and page.
 
 Retrieval results (hit@5, 31 questions):
 
@@ -158,8 +158,8 @@ Retrieval results (hit@5, 31 questions):
 | Hybrid  | 26/31 |
 
 Adding the document title to each chunk was the change that brought vector search to 28/31.
-Answer generation works end to end but has not been evaluated yet: in early tests the model
-sometimes cites the wrong page.
+Answer generation works end to end but has not been evaluated yet. In early tests the model
+sometimes cited the wrong page, so the document and page are now filled in by the code.
 
 Run from the repository root:
 
