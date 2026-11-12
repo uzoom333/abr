@@ -188,6 +188,21 @@ python rag/avaliar_respostas.py   # answers for the 31 questions, needs `ollama 
 
 Exporting writes a `historico_YYYY-MM-DD_HH-MM.xlsx` file in the repository root. These files are generated artefacts and are not tracked by Git.
 
+## Web interface
+
+`web/` has the same features as the CLI in a browser page: planting window, city comparison,
+financial analysis, the soybean + corn optimization, the query history, and a tab that asks the
+RAG. It calls the same functions the CLI uses and adds no dependencies (Python's `http.server` and
+one HTML file, no build step).
+
+```bash
+python web/servidor.py     # then open http://localhost:8000
+```
+
+Planting windows are drawn on a strip of 36 ten-day periods running from September to August (the
+crop year), and the optimization plan is drawn inside those windows. The Documents tab needs the
+RAG index and `ollama serve`; the other tabs work without them.
+
 ## Repository Structure
 
 ```text
@@ -202,6 +217,7 @@ abr/
 ├── financeiro.py     # Profit comparison by city and cycle
 ├── otimizacao.py     # Linear program: soybean + second-crop corn plan
 ├── teste_otimizacao.py # Hand-checkable test of the linear program
+├── web/              # Web interface: servidor.py (JSON over http.server) and index.html
 ├── rag/              # RAG: download, extraction, index, three searches, hit@5 evaluation, answers via Ollama
 ├── demo/             # Bundled sample data used when no API token is present
 ├── teste.api.py      # Standalone API exploration script

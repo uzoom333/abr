@@ -78,3 +78,25 @@ def decendios_entre(dec_ini, dec_fim):
     if dec_ini <= dec_fim:
         return list(range(dec_ini, dec_fim + 1))
     return list(range(dec_ini, 37)) + list(range(1, dec_fim + 1))
+
+
+def situacao_na_janela(data, janela):
+    """Onde a data cai em relação à janela, contando pelo ano-safra (set -> ago).
+
+    Devolve (status, decêndios):
+      'dentro'  e quantos decêndios ainda restam de janela depois deste
+      'antes'   e em quantos decêndios a janela abre
+      'passou'  e em quantos decêndios abre a janela da safra seguinte
+    Contar pelo ano-safra resolve a janela que atravessa a virada do ano (out -> jan):
+    no calendário ela vira [1, 28..36] e janeiro parece o começo, quando é o fim."""
+    t = para_ano_safra(qual_decendio(data))
+    ts = sorted(para_ano_safra(d) for d in janela)
+    if t in ts:
+        return "dentro", len([x for x in ts if x > t])
+    if t < ts[0]:
+        return "antes", ts[0] - t
+    depois = [x for x in ts if x > t]
+    if depois:  # janela com buraco no meio
+        return "antes", depois[0] - t
+    return "passou", 36 - t + ts[0]
+

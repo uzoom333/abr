@@ -1,0 +1,765 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ABR</title>
+<style>
+:root {
+  --fundo: #f5f3ec; --papel: #fffdf7; --tinta: #1c241e; --apagado: #5d6860; --linha: #d8d4c6;
+  --verde: #2c6a3b; --verde-claro: #b3d8b7; --milho: #b97a08; --milho-claro: #edd28f;
+  --alerta: #a83a28; --alerta-claro: #f3d9d2; --vazio: #ebe8dd; --borda: #b3ab93; --sombra: #dcd7c8; --verde-fundo: #1c4526;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fundo: #131714; --papel: #1a1f1b; --tinta: #e4e7e1; --apagado: #98a39a; --linha: #2f3731;
+    --verde: #7fc48c; --verde-claro: #25422b; --milho: #e2aa3d; --milho-claro: #4a3a14;
+    --alerta: #e58370; --alerta-claro: #4a241d; --vazio: #232a25; --borda: #46524a; --sombra: #0b0e0c; --verde-fundo: #3f7d4d;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--fundo); color: var(--tinta);
+  font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+h1, h2, h3 { font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; font-weight: 600; line-height: 1.2; }
+html { scroll-behavior: smooth; scroll-snap-type: y mandatory; }
+:where(svg.px) { display: block; width: 100%; height: auto; }
+
+/* capa: uma paisagem de lavoura desenhada em pixel num canvas (função cena) */
+.capa { height: 100svh; scroll-snap-align: start; position: relative; overflow: hidden; }
+#cena { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+.capa-texto { position: relative; height: 58%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 1rem; }
+.capa h1 { margin: 0; width: clamp(11rem, 24vw, 21rem); }
+.capa-texto p { margin: 1.3rem 0 1.5rem; font-size: 1.15rem; max-width: 30rem; }
+.capa .acao { margin: 0; text-decoration: none; padding: .6rem 1.5rem; }
+.seta { width: 1.75rem; margin-top: 1.6rem; color: var(--apagado); animation: sobe-desce 1.6s steps(2) infinite; }
+@keyframes sobe-desce { 50% { transform: translateY(6px); } }
+@media (prefers-reduced-motion: reduce) { .seta { animation: none; } html { scroll-behavior: auto; } }
+
+/* aplicativo: ocupa uma tela; abas na lateral e o conteúdo rola por dentro */
+.app { height: 100svh; scroll-snap-align: start; display: grid; grid-template-columns: 15rem minmax(0, 1fr); overflow: hidden; }
+.lado { display: flex; flex-direction: column; gap: 1.2rem; background: var(--papel); border-right: 2px solid var(--borda); padding: 1rem .7rem; min-height: 0; }
+.marca { display: flex; align-items: flex-end; gap: .6rem; padding: 0 .45rem; color: inherit; }
+.marca svg { width: 32px; }
+.marca svg + svg { width: 57px; margin-bottom: 3px; }
+nav { display: flex; flex-direction: column; gap: 3px; }
+nav a { display: flex; align-items: center; gap: .65rem; color: var(--tinta); text-decoration: none; padding: .4rem .45rem; font-size: .95rem; border-left: 3px solid transparent; }
+nav a svg { width: 24px; flex: none; }
+nav a:hover { background: var(--vazio); }
+nav a[aria-current] { background: var(--vazio); font-weight: 600; border-color: var(--verde); }
+.demo { margin-top: auto; align-self: flex-start; font-size: .8rem; color: var(--milho); border: 2px solid currentColor; padding: .1rem .5rem; }
+main { overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; min-height: 0; }
+main > section { flex: 1 0 auto; width: 100%; max-width: 54.5rem; margin: 0 auto; padding: 2.2rem 1.25rem 2.5rem; }
+section[hidden] { display: none; }
+section > h2 { font-size: 1.45rem; margin: 0 0 .25rem; display: flex; align-items: center; gap: .7rem; }
+section > h2 svg { width: 36px; flex: none; }
+.sub { color: var(--apagado); margin: 0 0 1.4rem; max-width: 44rem; }
+/* rodapé de cada tela: uma fileira de lavoura */
+.chao { flex: none; height: 64px; background-repeat: repeat-x; background-size: auto 64px; image-rendering: pixelated; }
+main:has(#documentos:not([hidden])) .chao { display: none; }
+@media (max-width: 50rem) {
+  .app { display: flex; flex-direction: column; }
+  .lado { border-right: 0; border-bottom: 2px solid var(--borda); gap: .6rem; padding: .7rem .7rem .4rem; }
+  nav { flex-direction: row; overflow-x: auto; }
+  nav a { white-space: nowrap; border-left: 0; border-bottom: 3px solid transparent; }
+  .demo { display: none; }
+  main { flex: 1; }
+}
+
+form { background: var(--papel); border: 2px solid var(--borda); box-shadow: 4px 4px 0 var(--sombra); padding: 1rem 1.1rem 1.1rem; }
+.campos { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: .8rem 1rem; }
+.campos.c5 { grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr)); }
+label, legend { font-size: .82rem; color: var(--apagado); }
+label { display: block; }
+input, select, button { font: inherit; color: inherit; }
+input, select { display: block; width: 100%; margin-top: .2rem; padding: .42rem .5rem; background: var(--fundo);
+  border: 2px solid var(--linha); border-radius: 0; }
+input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible { outline: 2px solid var(--verde); outline-offset: 1px; }
+fieldset { border: 0; border-top: 1px solid var(--linha); margin: 1.1rem 0 0; padding: .8rem 0 0; }
+legend { padding: 0 .5rem 0 0; font-weight: 600; color: var(--tinta); font-size: .9rem; }
+button { cursor: pointer; border-radius: 0; padding: .5rem 1rem; }
+.acao { display: inline-block; margin-top: 1.1rem; background: var(--verde); color: var(--papel); border: 0; font-weight: 600;
+  box-shadow: 0 4px 0 var(--verde-fundo); position: relative; }
+.acao:active { top: 4px; box-shadow: none; }
+.acao:disabled { opacity: .55; cursor: wait; }
+.leve { background: var(--papel); border: 2px solid var(--linha); padding: .3rem .7rem; font-size: .88rem; }
+.leve:hover { border-color: var(--borda); }
+.dica { font-size: .85rem; color: var(--apagado); margin: .5rem 0 0; }
+
+.cidades { display: flex; flex-wrap: wrap; gap: .3rem 1.1rem; margin-top: .3rem; max-height: 11rem; overflow-y: auto; }
+.cidades label { display: flex; align-items: center; gap: .4rem; font-size: .95rem; color: var(--tinta); }
+.cidades input { width: auto; margin: 0; }
+.linha-cidade { display: grid; grid-template-columns: minmax(9rem, 2fr) minmax(6rem, 1fr) minmax(8rem, 1.4fr) auto; gap: .6rem; align-items: end; margin-top: .6rem; }
+@media (max-width: 34rem) { .linha-cidade { grid-template-columns: 1fr 1fr; } }
+
+.saida { margin-top: 1.6rem; }
+.erro { color: var(--alerta); background: var(--alerta-claro); padding: .6rem .8rem; }
+.resultado { display: flex; align-items: flex-end; gap: 1rem; margin-bottom: 1rem; }
+.resultado .planta { width: 64px; flex: none; }
+.resultado p { margin: 0; }
+.veredito { font-size: 1.3rem; margin: 0 0 .2rem; }
+.veredito.dentro { color: var(--verde); } .veredito.fora { color: var(--alerta); }
+.selo { font-size: .82rem; font-weight: 600; white-space: nowrap; }
+.selo.dentro { color: var(--verde); } .selo.antes { color: var(--milho); } .selo.passou { color: var(--alerta); }
+a { color: var(--verde); }
+.nota { font-size: .85rem; color: var(--apagado); max-width: 46rem; }
+.aviso { font-size: .88rem; border-left: 3px solid var(--milho); padding: .1rem 0 .1rem .7rem; margin: 1rem 0; max-width: 46rem; }
+
+.rolagem { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: .93rem; }
+th, td { text-align: left; padding: .45rem .7rem .45rem 0; border-bottom: 1px solid var(--linha); vertical-align: middle; }
+th { font-size: .78rem; font-weight: 600; color: var(--apagado); }
+td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* faixa do ano-safra: 12 meses, 3 decêndios cada, de setembro a agosto */
+.faixa { display: flex; gap: 5px; min-width: 36rem; }
+.faixa .mes { flex: 1; }
+.faixa .mes span { display: block; font-size: .68rem; color: var(--apagado); text-align: center; margin-bottom: 2px; }
+.faixa .decs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
+.faixa i { display: block; height: 1.5rem; background: var(--vazio); border-radius: 2px; font-style: normal;
+  font-size: .62rem; line-height: 1.5rem; text-align: center; overflow: hidden; font-variant-numeric: tabular-nums; }
+.faixa i.j { background: var(--verde-claro); }
+.faixa i.p { background: var(--verde); color: var(--papel); font-weight: 600; }
+.faixa.milho i.j { background: var(--milho-claro); }
+.faixa.milho i.p { background: var(--milho); color: var(--papel); }
+.faixa i.m { box-shadow: 0 0 0 2px var(--tinta); position: relative; z-index: 1; }
+.faixa.baixa i { height: 1rem; }
+.legenda { display: flex; flex-wrap: wrap; gap: .3rem 1.2rem; font-size: .8rem; color: var(--apagado); margin-top: .6rem; }
+.legenda b { display: inline-block; width: .8rem; height: .8rem; border-radius: 2px; vertical-align: -1px; margin-right: .3rem; }
+
+.talhao { border-top: 1px solid var(--linha); padding: 1rem 0; }
+.talhao h3 { font-size: 1.05rem; margin: 0 0 .6rem; }
+.talhao h3 small { font: 400 .85rem system-ui, sans-serif; color: var(--apagado); }
+.trilhos { display: grid; grid-template-columns: 3.2rem 1fr; gap: 4px .5rem; align-items: end; min-width: 40rem; }
+.trilhos > span { font-size: .78rem; color: var(--apagado); line-height: 1.5rem; }
+.talhao ul { margin: .7rem 0 0; padding-left: 1.1rem; font-size: .92rem; }
+.total { font-size: 1.6rem; font-family: "Iowan Old Style", Palatino, Georgia, serif; margin: 0; font-variant-numeric: tabular-nums; }
+
+.barras { display: grid; grid-template-columns: auto 1fr auto; gap: .3rem .7rem; align-items: center; max-width: 30rem; font-size: .9rem; }
+.barras div { height: .7rem; background: var(--vazio); border-radius: 2px; }
+.barras div b { display: block; height: 100%; background: var(--verde); border-radius: 2px; }
+
+/* Documentos: conversa, com a caixa de pergunta presa embaixo */
+#documentos:not([hidden]) { display: flex; flex-direction: column; padding-bottom: 0; max-width: 48.5rem; }
+.conversa { flex: 1; }
+#boas-vindas { text-align: center; padding-top: 12vh; }
+#boas-vindas > svg { width: 96px; margin: 0 auto .8rem; }
+#boas-vindas h2 { justify-content: center; }
+#boas-vindas .sub { margin: 0 auto 1.2rem; }
+#boas-vindas .aviso { text-align: left; margin: 1rem auto; }
+.exemplos { display: flex; flex-wrap: wrap; justify-content: center; gap: .4rem; }
+.msg.eu { width: fit-content; max-width: 85%; margin: 0 0 1rem auto; background: var(--vazio); border: 2px solid var(--linha); padding: .45rem .9rem; scroll-margin-top: 1rem; }
+.msg.abr { margin: 0 0 2rem; }
+.resposta { white-space: pre-wrap; font-size: 1.05rem; margin: 0; }
+.compositor { position: sticky; bottom: 0; background: var(--fundo); padding: .6rem 0 .9rem; }
+.pergunta { display: flex; gap: .6rem; padding: .45rem .45rem .7rem .9rem; }
+.pergunta input { margin: 0; border: 0; background: none; padding: .3rem 0; }
+.pergunta input:focus-visible { outline: 0; }
+.pergunta .acao { margin: 0; white-space: nowrap; }
+.compositor .dica { text-align: center; margin: .45rem 0 0; font-size: .78rem; }
+.cit { font-size: .75rem; font-weight: 600; text-decoration: none; border: 2px solid currentColor; padding: 0 .3rem; margin: 0 .1rem; vertical-align: 1px; }
+details.trechos { margin-top: .9rem; font-size: .9rem; }
+details.trechos summary { cursor: pointer; color: var(--apagado); width: fit-content; }
+.trecho { border-top: 1px solid var(--linha); padding: .7rem 0; margin-top: .6rem; scroll-margin-top: 1rem; }
+.trecho.alvo { background: var(--verde-claro); }
+.trecho h3 { font: 600 .92rem system-ui, sans-serif; margin: 0; }
+.trecho p { margin: .3rem 0 0; font-size: .86rem; color: var(--apagado); }
+</style>
+</head>
+<body>
+<div class="capa" id="topo">
+  <canvas id="cena" aria-hidden="true"></canvas>
+  <div class="capa-texto">
+    <h1 id="titulo" aria-label="ABR"></h1>
+    <p>Janelas de plantio de soja em Goiás, pelo zoneamento do ZARC</p>
+    <a class="acao" href="#janela">Começar</a>
+    <div class="seta" id="seta"></div>
+  </div>
+</div>
+
+<div class="app" id="app">
+<aside class="lado">
+  <a class="marca" href="#topo" id="marca" aria-label="ABR, voltar para a capa"></a>
+  <nav id="nav">
+    <a href="#janela" data-ic="broto">Janela de plantio</a>
+    <a href="#comparar" data-ic="dois">Comparar cidades</a>
+    <a href="#financeiro" data-ic="saca">Análise financeira</a>
+    <a href="#otimizacao" data-ic="espiga">Otimização</a>
+    <a href="#documentos" data-ic="folha">Documentos</a>
+    <a href="#historico" data-ic="relogio">Histórico</a>
+  </nav>
+  <span class="demo" id="demo" hidden title="Sem ACCESS_TOKEN no .env: dados de exemplo, só 5 municípios">modo demo: 5 municípios</span>
+</aside>
+
+<main>
+
+<section id="janela">
+  <h2>Janela de plantio</h2>
+  <p class="sub">A data que você quer plantar está dentro da janela do ZARC para a cidade e o ciclo?</p>
+  <form>
+    <div class="campos">
+      <label>Cidade <select name="codigo" class="cidade"></select></label>
+      <label>Ciclo da soja <select name="ciclo" class="ciclo"></select></label>
+      <label>Data do plantio <input type="date" name="data" min="2024-01-01" max="2030-12-31" required></label>
+    </div>
+    <button class="acao">Consultar</button>
+  </form>
+  <div class="saida"></div>
+</section>
+
+<section id="comparar" hidden>
+  <h2>Comparar cidades</h2>
+  <p class="sub">A mesma data e o mesmo ciclo em até 10 cidades, para ver onde a janela está aberta.</p>
+  <form>
+    <div class="campos">
+      <label>Ciclo da soja <select name="ciclo" class="ciclo"></select></label>
+      <label>Data do plantio <input type="date" name="data" min="2024-01-01" max="2030-12-31" required></label>
+    </div>
+    <fieldset><legend>Cidades</legend><div class="cidades"></div></fieldset>
+    <button class="acao">Comparar</button>
+  </form>
+  <div class="saida"></div>
+</section>
+
+<section id="financeiro" hidden>
+  <h2>Análise financeira</h2>
+  <p class="sub">Cidades e ciclos ordenados pelo lucro líquido por hectare, olhando só as janelas que ainda dá para plantar.</p>
+  <form>
+    <div class="campos">
+      <label>Custo de produção (R$/ha) <input name="custo_ha" inputmode="decimal" value="4500"></label>
+      <label>Preço da saca de 60 kg (R$) <input name="preco_saca" inputmode="decimal" value="120"></label>
+      <label>Data de referência <input type="date" name="data" min="2024-01-01" max="2030-12-31" required></label>
+    </div>
+    <fieldset><legend>Produtividade esperada (sc/ha)</legend>
+      <div class="campos">
+        <label>Precoce <input name="precoce" inputmode="decimal" value="58"></label>
+        <label>Médio <input name="medio" inputmode="decimal" value="62"></label>
+        <label>Tardio <input name="tardio" inputmode="decimal" value="64"></label>
+      </div>
+    </fieldset>
+    <fieldset><legend>Cidades</legend><div class="cidades"></div></fieldset>
+    <p class="dica">Os valores já preenchidos são só um exemplo. Troque pelos seus: o ABR não busca preço nem custo real.</p>
+    <button class="acao">Calcular</button>
+  </form>
+  <div class="saida"></div>
+</section>
+
+<section id="otimizacao" hidden>
+  <h2>Otimização soja + milho safrinha</h2>
+  <p class="sub">Programação linear que decide quanto plantar de cada ciclo de soja em cada decêndio, e o milho safrinha que vem depois, para o maior lucro no ano-safra.</p>
+  <form>
+    <fieldset style="border:0;margin:0;padding:0"><legend>Soja</legend>
+      <div class="campos c5">
+        <label>Custo (R$/ha) <input name="s_custo" inputmode="decimal" value="4500"></label>
+        <label>Preço da saca (R$) <input name="s_preco" inputmode="decimal" value="120"></label>
+        <label>Precoce (sc/ha) <input name="s_precoce" inputmode="decimal" value="58"></label>
+        <label>Médio (sc/ha) <input name="s_medio" inputmode="decimal" value="62"></label>
+        <label>Tardio (sc/ha) <input name="s_tardio" inputmode="decimal" value="64"></label>
+      </div>
+    </fieldset>
+    <fieldset><legend>Milho safrinha</legend>
+      <div class="campos">
+        <label>Custo (R$/ha) <input name="m_custo" inputmode="decimal" value="3500"></label>
+        <label>Preço da saca (R$) <input name="m_preco" inputmode="decimal" value="55"></label>
+        <label>Produtividade no início da janela (sc/ha) <input name="m_prod" inputmode="decimal" value="100"></label>
+      </div>
+    </fieldset>
+    <fieldset><legend>Plantadeira</legend>
+      <div class="campos c5" id="plantadeira">
+        <label>Largura de trabalho (m) <input name="largura_m" inputmode="decimal"></label>
+        <label>Velocidade (km/h) <input name="velocidade_kmh" inputmode="decimal"></label>
+        <label>Eficiência de campo (0 a 1) <input name="eficiencia" inputmode="decimal"></label>
+        <label>Horas por dia <input name="horas_dia" inputmode="decimal"></label>
+        <label>Dias úteis por decêndio <input name="dias_uteis" inputmode="decimal"></label>
+      </div>
+      <p class="dica" id="capacidade"></p>
+    </fieldset>
+    <fieldset><legend>Cidades</legend>
+      <div id="linhas-cidade"></div>
+      <p class="dica">Solos: deixe vazio para tudo em AD2, ou divida a área assim: <code>AD2:60 AD4:40</code>.</p>
+      <button type="button" class="leve" id="mais-cidade">Adicionar cidade</button>
+    </fieldset>
+    <p class="dica">Preços, custos e produtividades já preenchidos são só um exemplo. Troque pelos seus.</p>
+    <button class="acao">Otimizar</button>
+  </form>
+  <div class="saida"></div>
+</section>
+
+<section id="documentos" hidden>
+  <div class="conversa">
+    <div id="boas-vindas">
+      <h2>Documentos</h2>
+      <p class="sub">Pergunte às portarias do ZARC e aos estudos da Embrapa, do MAPA e da CONAB que estão por trás do ABR. A resposta sai dos trechos encontrados e aponta de onde veio cada informação.</p>
+      <div class="exemplos">
+        <button type="button" class="leve">qual a duração dos ciclos de soja que o ZARC simula em Goiás?</button>
+        <button type="button" class="leve">quais os limites de água disponível da classe AD4?</button>
+        <button type="button" class="leve">quantos anos de dados o ZARC do milho usa?</button>
+      </div>
+    </div>
+  </div>
+  <div class="compositor">
+    <form class="pergunta">
+      <input name="pergunta" aria-label="Pergunta" placeholder="Pergunte aos documentos" autocomplete="off">
+      <button class="acao">Perguntar</button>
+    </form>
+    <p class="dica">O modelo roda no seu computador e erra às vezes. Confira no trecho citado.</p>
+  </div>
+</section>
+
+<section id="historico" hidden>
+  <h2>Histórico</h2>
+  <p class="sub">As consultas de janela de plantio que já foram feitas, aqui ou no terminal.</p>
+  <div class="saida"></div>
+</section>
+
+<div class="chao" id="chao"></div>
+</main>
+</div>
+
+<script>
+const MESES = ["set", "out", "nov", "dez", "jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago"];
+const NOME_CICLO = { precoce: "Precoce", medio: "Médio", tardio: "Tardio" };
+const $ = (s, pai = document) => pai.querySelector(s);
+const $$ = (s, pai = document) => [...pai.querySelectorAll(s)];
+const esc = t => String(t).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const reais = v => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const ha = v => Math.round(v).toLocaleString("pt-BR");
+const plural = (n, um, varios) => `${n} ${n === 1 ? um : varios}`;
+const decs = n => plural(n, "decêndio", "decêndios");
+const nomeT = t => `${(t - 1) % 3 + 1}º dec. ${MESES[Math.floor((t - 1) / 3)]}`;  // t = decêndio do ano-safra, 1 = 1º de setembro
+let inicio;
+
+async function pede(rota, dados) {
+  const r = await fetch(rota, dados ? { method: "POST", body: JSON.stringify(dados) } : {});
+  const corpo = await r.json();
+  if (!r.ok) throw new Error(corpo.erro || "Erro no servidor.");
+  return corpo;
+}
+
+/* Faixa de 36 decêndios. janela e plantado: listas/objetos indexados por t; marca: o t da data consultada. */
+function faixa({ janela = [], plantado = {}, marca, classe = "", meses = true }) {
+  const dentro = new Set(janela);
+  let html = `<div class="faixa ${classe}">`;
+  for (let m = 0; m < 12; m++) {
+    html += `<div class="mes">${meses ? `<span>${MESES[m]}</span>` : ""}<div class="decs">`;
+    for (let t = m * 3 + 1; t <= m * 3 + 3; t++) {
+      const qtd = plantado[t];
+      const classes = [qtd ? "p" : dentro.has(t) ? "j" : "", t === marca ? "m" : ""].join(" ");
+      const titulo = nomeT(t) + (qtd ? `: ${ha(qtd)} ha` : dentro.has(t) ? ": na janela" : "");
+      html += `<i class="${classes}" title="${titulo}">${qtd ? ha(qtd) : ""}</i>`;
+    }
+    html += "</div></div>";
+  }
+  return html + "</div>";
+}
+
+const SITUACAO = {
+  dentro: n => n === 0 ? "janela aberta, último decêndio" : `janela aberta, restam ${decs(n)}`,
+  antes: n => `abre em ${decs(n)}`,
+  passou: n => `já fechou; reabre em ${decs(n)}`,
+};
+const selo = l => `<span class="selo ${l.status}">${SITUACAO[l.status](l.decendios)}</span>`;
+const lista = (titulo, nomes) => nomes.length ? `<p class="nota">${titulo}: ${nomes.map(esc).join(", ")}.</p>` : "";
+
+/* Liga um formulário a uma rota: monta o pedido, mostra o resultado ou o erro. */
+function liga(id, monta, mostra) {
+  const secao = $("#" + id), form = $("form", secao), saida = $(".saida", secao), botao = $(".acao", form);
+  form.addEventListener("submit", async e => {
+    e.preventDefault();
+    botao.disabled = true;
+    try {
+      const f = Object.fromEntries(new FormData(form));
+      const [rota, dados] = monta(f, form);
+      saida.innerHTML = mostra(await pede(rota, dados), f);
+    } catch (erro) {
+      saida.innerHTML = `<p class="erro">${esc(erro.message)}</p>`;
+    }
+    botao.disabled = false;
+  });
+}
+const marcadas = form => $$(".cidades input:checked", form).map(c => +c.value);
+
+/* ---------- Janela de plantio ---------- */
+liga("janela", f => ["/api/janela", f], (r, f) => {
+  const data = new Date(f.data + "T12:00").toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" });
+  const frase = {
+    dentro: r.decendios === 0 ? "É o último decêndio da janela." : `Depois deste, restam ${decs(r.decendios)} de janela.`,
+    antes: `A janela ainda não abriu. Abre em ${decs(r.decendios)}.`,
+    passou: `A janela desta safra já fechou. A próxima abre em ${decs(r.decendios)}.`,
+  }[r.status];
+  return `
+    <div class="resultado"><div class="planta">${pixels(PLANTA[{ dentro: "soja", antes: "broto", passou: "palhada" }[r.status]], 10)}</div><div>
+    <p class="veredito ${r.status === "dentro" ? "dentro" : "fora"}">${r.status === "dentro" ? "Dentro da janela" : "Fora da janela"}</p>
+    <p>${esc(r.cidade)}, ciclo ${NOME_CICLO[r.ciclo].toLowerCase()}: ${data} cai no ${r.nome_decendio}. ${frase}</p></div></div>
+    <div class="rolagem">${faixa({ janela: r.janela, marca: r.t })}</div>
+    <div class="legenda"><span><b style="background:var(--verde-claro)"></b>janela do ZARC</span>
+      <span><b style="box-shadow:0 0 0 2px var(--tinta)"></b>data consultada</span></div>
+    <p class="nota">Janela para solo AD2 e risco de até 20%. Cada quadrado é um decêndio; o ano-safra vai de setembro a agosto.
+      <a href="#documentos" data-pergunta="qual o ISNA mínimo que o ZARC exige para a soja?">Como o ZARC chega nessa janela?</a></p>`;
+});
+
+/* ---------- Comparar cidades ---------- */
+liga("comparar", (f, form) => ["/api/comparar", { ...f, codigos: marcadas(form) }], r => `
+  <div class="rolagem"><table>
+    <tr><th>Cidade</th><th>Situação na data</th><th style="width:60%">Janela no ano-safra</th></tr>
+    ${r.linhas.map((l, i) => `<tr><td>${esc(l.cidade)}</td><td>${selo(l)}</td>
+      <td>${faixa({ janela: l.janela, marca: r.t, classe: "baixa", meses: i === 0 })}</td></tr>`).join("")}
+  </table></div>
+  ${lista("Sem zoneamento disponível", r.sem_zarc)}${lista("Sem esse ciclo no ZARC", r.sem_ciclo)}`);
+
+/* ---------- Análise financeira ---------- */
+liga("financeiro", (f, form) => ["/api/financeiro", { ...f, codigos: marcadas(form),
+    produtividade: { precoce: f.precoce, medio: f.medio, tardio: f.tardio } }], r => `
+  ${r.viaveis.length ? `<div class="rolagem"><table>
+    <tr><th></th><th>Cidade</th><th>Ciclo</th><th>Situação</th><th class="n">Produtividade</th><th class="n">Receita por ha</th><th class="n">Lucro líquido por ha</th></tr>
+    ${r.viaveis.map((l, i) => `<tr><td class="n">${i + 1}</td><td>${esc(l.cidade)}</td><td>${NOME_CICLO[l.ciclo]}</td><td>${selo(l)}</td>
+      <td class="n">${l.produtividade.toLocaleString("pt-BR")} sc/ha</td><td class="n">${reais(l.lucro_bruto)}</td><td class="n"><strong>${reais(l.lucro_liquido)}</strong></td></tr>`).join("")}
+  </table></div>` : `<p>Nenhuma janela ainda aberta ou por abrir nesta safra para as cidades escolhidas.</p>`}
+  ${lista("Janela já fechada nesta safra", r.passadas.map(l => `${l.cidade} (${NOME_CICLO[l.ciclo].toLowerCase()})`))}
+  ${lista("Sem zoneamento disponível", r.sem_zarc)}
+  <p class="nota">O lucro considera só o custo por hectare e o preço informados. Não entram frete, impostos, financiamento nem risco climático além do que o ZARC já filtra.</p>`);
+
+/* ---------- Otimização ---------- */
+function linhaCidade() {
+  const div = document.createElement("div");
+  div.className = "linha-cidade";
+  div.innerHTML = `<label>Cidade <select class="cidade">${opcoesCidade()}</select></label>
+    <label>Área (ha) <input class="area" inputmode="decimal" value="1000"></label>
+    <label>Solos <input class="solos" placeholder="AD2:100"></label>
+    <button type="button" class="leve" title="Tirar esta cidade">Tirar</button>`;
+  $("button", div).onclick = () => div.remove();
+  const usadas = $$("#linhas-cidade select").map(s => s.value);
+  const livre = inicio.municipios.find(m => !usadas.includes(String(m.codigo)));
+  if (livre) $("select", div).value = livre.codigo;
+  $("#linhas-cidade").append(div);
+}
+function mostraCapacidade() {
+  const v = Object.fromEntries($$("#plantadeira input").map(i => [i.name, parseFloat(i.value.replace(",", "."))]));
+  const cap = v.largura_m * v.velocidade_kmh * v.eficiencia / 10 * v.horas_dia * v.dias_uteis;
+  $("#capacidade").textContent = isFinite(cap) ? `Capacidade: ${ha(cap)} ha por decêndio.` : "";
+}
+
+liga("otimizacao", f => ["/api/otimizar", {
+  soja: { custo_ha: f.s_custo, preco_saca: f.s_preco, produtividade: { precoce: f.s_precoce, medio: f.s_medio, tardio: f.s_tardio } },
+  milho: { custo_ha: f.m_custo, preco_saca: f.m_preco, produtividade: f.m_prod },
+  plantadeira: Object.fromEntries($$("#plantadeira input").map(i => [i.name, i.value])),
+  cidades: $$(".linha-cidade").map(l => ({ codigo: $("select", l).value, area: $(".area", l).value, solos: $(".solos", l).value })),
+}], r => {
+  const h = inicio.hipoteses;
+  const talhoes = r.plano.map(p => {
+    const soja = {}, milho = {};
+    p.soja.forEach(([, t, qtd]) => soja[t] = (soja[t] || 0) + qtd);
+    p.milho.forEach(([t, qtd]) => milho[t] = qtd);
+    const itens = [
+      ...p.soja.map(([c, t, qtd]) => `Soja ${NOME_CICLO[c].toLowerCase()}: ${ha(qtd)} ha no ${nomeT(t)}`),
+      ...p.milho.map(([t, qtd]) => `Milho safrinha: ${ha(qtd)} ha no ${nomeT(t)}`),
+      !p.soja.length && "Soja: não compensa plantar aqui",
+      !p.janela_milho.length && "Sem janela de milho para este solo: fica só com soja",
+      p.sem_milho > 0.5 && `Soja colhida sem milho depois: ${ha(p.sem_milho)} ha`,
+      p.parada > 0.5 && `Área sem plantio: ${ha(p.parada)} ha`,
+    ].filter(Boolean);
+    return `<div class="talhao">
+      <h3>${esc(p.talhao)} <small>${ha(p.area)} ha</small></h3>
+      <div class="rolagem"><div class="trilhos">
+        <span>Soja</span>${faixa({ janela: p.janela_soja, plantado: soja })}
+        <span>Milho</span>${faixa({ janela: p.janela_milho, plantado: milho, classe: "milho", meses: false })}
+      </div></div>
+      <ul>${itens.map(i => `<li>${i}</li>`).join("")}</ul>
+    </div>`;
+  }).join("");
+
+  return `
+    <p class="sub" style="margin:0">Lucro total do plano</p>
+    <p class="total">${reais(r.lucro_total)}</p>
+    <p class="nota">Plantadeira: ${ha(r.cap)} ha por decêndio.</p>
+    ${r.milho_ilustrativo ? `<p class="aviso">No modo demo, as janelas do milho safrinha são ilustrativas: foram escritas à mão, não vêm da AgroAPI. As da soja são registros reais.</p>` : ""}
+    ${talhoes}
+    <div class="legenda" style="margin-bottom:1.6rem">
+      <span><b style="background:var(--verde-claro)"></b>janela da soja</span><span><b style="background:var(--verde)"></b>soja plantada (ha)</span>
+      <span><b style="background:var(--milho-claro)"></b>janela do milho</span><span><b style="background:var(--milho)"></b>milho plantado (ha)</span></div>
+
+    <h3>Quanto vale afrouxar cada limite</h3>
+    <div class="rolagem"><table>
+      <tr><th>Limite</th><th class="n">Preço-sombra</th></tr>
+      ${r.plano.map(p => `<tr><td>Área em ${esc(p.talhao)}</td><td class="n">${reais(p.preco_sombra_area || 0)} por ha a mais</td></tr>`).join("")}
+      ${r.gargalos_plantadeira.map(([t, pi]) => `<tr><td>Plantadeira no ${nomeT(t)}</td><td class="n">${reais(pi)} por ha a mais de capacidade</td></tr>`).join("")}
+    </table></div>
+    ${r.gargalos_plantadeira.length ? "" : `<p class="nota">A plantadeira não é gargalo em nenhum decêndio.</p>`}
+    <p class="nota">Com empates de lucro o solver escolhe um dos planos ótimos, e num vértice degenerado o preço-sombra vale só para um lado.</p>
+
+    <h3>Hipóteses do modelo</h3>
+    <ul class="nota">
+      <li>Do plantio à colheita da soja: precoce ${h.duracao.precoce}, médio ${h.duracao.medio} e tardio ${h.duracao.tardio} decêndios.
+        <a href="#documentos" data-pergunta="qual a duração dos ciclos de soja que o ZARC simula em Goiás?">Ver nos documentos</a></li>
+      <li>Entre colher a soja e a área estar pronta para o milho: ${decs(h.intervalo)}.</li>
+      <li>O milho perde ${(h.perda_milho * 100).toLocaleString("pt-BR")}% de produtividade a cada decêndio de atraso no plantio.
+        <a href="#documentos" data-pergunta="quanto o milho safrinha perde de produtividade com o atraso da semeadura?">Ver nos documentos</a></li>
+    </ul>`;
+});
+
+/* ---------- Documentos ---------- */
+const formDoc = $("#documentos form"), conversa = $("#documentos .conversa");
+function textoComCitacoes(texto, n) {
+  // o modelo cita [Bloco N]; aqui cada um vira um link para o trecho N (mesma regra do responder.py)
+  return esc(texto.replace(/\[[^\]]*$/, "")).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\[?Blocos? (\d+)\]?/g, (_, b) => b >= 1 && b <= n ? `<a class="cit" href="#" data-trecho="${b}">${b}</a>` : `<span class="cit">bloco inexistente</span>`);
+}
+async function pergunta(texto) {
+  texto = texto.trim();
+  if (!texto) return;
+  const botao = $(".acao", formDoc);
+  botao.disabled = true;
+  formDoc.pergunta.value = "";
+  $("#boas-vindas").hidden = true;
+  conversa.insertAdjacentHTML("beforeend", `<p class="msg eu">${esc(texto)}</p>
+    <div class="msg abr"><p class="nota andamento">Procurando os trechos…</p><p class="resposta"></p>
+      <details class="trechos" hidden><summary>Trechos usados</summary></details></div>`);
+  const msg = conversa.lastElementChild;
+  msg.previousElementSibling.scrollIntoView({ block: "start" });
+  let n = 0;
+  const falha = erro => { const a = $(".andamento", msg); if (a) a.outerHTML = `<p class="erro">${esc(erro)}</p>`; };
+  const trata = linha => {
+    if (linha.erro) falha(linha.erro);
+    if (linha.trechos) {
+      n = linha.trechos.length;
+      $(".andamento", msg).textContent = "Escrevendo a resposta… o modelo roda no seu computador e pode levar até um minuto.";
+      const det = $(".trechos", msg);
+      det.hidden = false;
+      det.insertAdjacentHTML("beforeend", linha.trechos.map((t, i) => `
+        <div class="trecho" data-n="${i + 1}">
+          <h3><span class="cit">${i + 1}</span> ${esc(t.titulo)}, p. ${t.pagina}
+            ${t.url ? `<a href="${esc(t.url)}#page=${t.pagina}" target="_blank" rel="noopener" style="font-weight:400">abrir o PDF</a>` : ""}</h3>
+          <p>${esc(t.texto)}</p>
+        </div>`).join(""));
+    }
+    if (linha.texto) $(".resposta", msg).innerHTML = textoComCitacoes(linha.texto, n);
+    if (linha.fim) $(".andamento", msg)?.remove();
+  };
+  try {
+    const r = await fetch("/api/perguntar", { method: "POST", body: JSON.stringify({ pergunta: texto }) });
+    const leitor = r.body.getReader(), dec = new TextDecoder();
+    let resto = "";
+    for (;;) {
+      const { done, value } = await leitor.read();
+      if (done) break;
+      const linhas = (resto + dec.decode(value, { stream: true })).split("\n");
+      resto = linhas.pop();
+      linhas.filter(Boolean).forEach(l => trata(JSON.parse(l)));
+    }
+  } catch (erro) {
+    falha(erro.message);
+  }
+  botao.disabled = false;
+}
+formDoc.addEventListener("submit", e => { e.preventDefault(); pergunta(formDoc.pergunta.value); });
+$$(".exemplos button").forEach(b => b.onclick = () => pergunta(b.textContent));
+document.addEventListener("click", e => {
+  // links "ver nos documentos" das outras telas: abrem a aba já perguntando
+  const link = e.target.closest("a[data-pergunta]");
+  if (link) pergunta(link.dataset.pergunta);
+  // número da citação: abre os trechos daquela resposta e mostra o trecho citado
+  const cit = e.target.closest("a[data-trecho]");
+  if (cit) {
+    e.preventDefault();
+    const msg = cit.closest(".msg");
+    $(".trechos", msg).open = true;
+    $$(".trecho", msg).forEach(t => t.classList.toggle("alvo", t.dataset.n === cit.dataset.trecho));
+    $(".trecho.alvo", msg).scrollIntoView({ block: "nearest" });
+  }
+});
+
+/* ---------- Histórico ---------- */
+async function mostraHistorico() {
+  const saida = $("#historico .saida");
+  try {
+    const r = await pede("/api/historico");
+    if (!r.total) { saida.innerHTML = "<p>Nenhuma consulta ainda.</p>"; return; }
+    const barra = (nome, n) => `<span>${nome}</span><div><b style="width:${n / r.total * 100}%"></b></div><span>${n}</span>`;
+    saida.innerHTML = `
+      <p>${plural(r.total, "consulta", "consultas")}. <a href="/api/historico.xlsx">Baixar em Excel</a></p>
+      <div class="barras">${Object.entries(r.por_ciclo).map(([c, n]) => barra(NOME_CICLO[c], n)).join("")}
+        ${barra("Dentro da janela", r.dentro)}${barra("Fora da janela", r.fora)}</div>
+      <div class="rolagem" style="margin-top:1.4rem"><table>
+        <tr><th>Consulta feita em</th><th>Cidade</th><th>Ciclo</th><th>Data do plantio</th><th>Resultado</th></tr>
+        ${r.linhas.map(l => `<tr><td>${esc(l.data_consulta)}</td><td>${esc(l.cidade)}</td><td>${NOME_CICLO[l.ciclo] || esc(l.ciclo)}</td>
+          <td>${esc(l.data_plantio.split("-").reverse().join("/"))}</td>
+          <td><span class="selo ${l.resultado === "dentro" ? "dentro" : "passou"}">${esc(l.resultado)}</span></td></tr>`).join("")}
+      </table></div>`;
+  } catch (erro) {
+    saida.innerHTML = `<p class="erro">${esc(erro.message)}</p>`;
+  }
+}
+
+/* ---------- Desenhos em pixel ---------- */
+const COR = { g: "#2c6a3b", l: "#6fae5c", y: "#d6a11e", c: "#ecd58a", k: "#a3875a", s: "#6b4a2e", t: "#8a6340",
+  r: "#b5432e", d: "#7d2c1f", w: "#f1e6d0", a: "#aab3b8", x: "currentColor" };
+const SOLO = ["tttttttttttttttt", "sstsssssssstssss", "ssssssstssssssst"];
+const PLANTA = {
+  broto: [".....ll..ll.....", "......lggl......", ".......gg.......", ".......gg......."],
+  soja: [".......ll.......", "......llll......", "......llll......", "..ll...gg...ll..", ".llll..gg..llll.", ".llllg.gg.gllll.",
+    "..ll.gggggg.ll..", ".......gg.......", ".......gg.......", ".......gg......."],
+  vagens: [".......ll.......", "......llll......", "..ll..llll..ll..", ".llll..gg..llll.", ".llllg.gg.gllll.", "..ll.gggggg.ll..",
+    "...y...gg...y...", "...y.y.gg.y.y...", ".....y.gg.y.....", ".......gg......."],
+  palhada: ["..k...k..k...k..", "..k.k.k..k.k.k.."],
+  milho: [".......cc.......", "......cccc......", ".......gg.......", ".l.....gg.....l.", "..l....gg....l..", "..ll...gg...ll..",
+    "...ll..ggyy.ll..", "....ll.ggyyll...", ".l...llggyyl..l.", "..ll...gg...ll..", "...lll.gg.lll...", ".....llggll.....", ".......gg......."],
+  celeiro: ["....dd....", "...dddd...", "..dddddd..", ".dddddddd.", ".rrrrrrrr.", ".rrwwwwrr.", ".rrwrrwrr.", ".rrwrrwrr."],
+  silo: [".aa.", "aaaa", "awaa", "aaaa", "awaa", "aaaa", "awaa", "aaaa", "aaaa", "aaaa"],
+};
+const ICONE = {
+  broto: ["............", "..ll....ll..", ".llll..llll.", ".lllgllglll.", "..llgggglll.", ".....gg.....", ".....gg.....", ".....gg.....", "tttttttttttt"],
+  dois: ["........ll..", ".......llll.", ".......llll.", "........gg..", "..l.l..lggl.", "..lgl...gg..", "...g....gg..", "...g....gg..", "tttttttttttt"],
+  saca: ["....kkkk....", "...k.kk.k...", "....kkkk....", "..cccccccc..", ".cccccccccc.", ".ccckcckccc.", ".cccccccccc.", ".cccccccccc.", "..cccccccc.."],
+  espiga: [".....yy.....", "....yyyy....", "....ycyy....", "...lyyycl...", "...lycyyl...", "..llyyyyll..", "..lllyylll..", "...llllll...", ".....gg....."],
+  folha: ["..cccccc....", "..ccccccc...", "..cccccccc..", "..ckkkkkcc..", "..cccccccc..", "..ckkkkkcc..", "..cccccccc..", "..ckkkcccc..", "..cccccccc.."],
+  relogio: ["...kkkkkk...", "..kcccccck..", ".kccckcccck.", ".kccckcccck.", ".kccckkkcck.", ".kcccccccck.", ".kcccccccck.", "..kcccccck..", "...kkkkkk..."],
+  abr: [".xxx...xxxx...xxxx.", "x...x..x...x..x...x", "x...x..x...x..x...x", "xxxxx..xxxx...xxxx.", "x...x..x...x..x.x..", "x...x..x...x..x..x.", "x...x..xxxx...x...x"],
+  seta: ["xx...xx", ".xx.xx.", "..xxx..", "...x..."],
+};
+
+/* Cada letra é um pixel. altura: quantas linhas o desenho ocupa (o que faltar em cima fica vazio). */
+function pixels(linhas, altura = linhas.length) {
+  let r = "";
+  linhas.forEach((linha, i) => {
+    const y = altura - linhas.length + i;
+    for (let x = 0; x < linha.length;) {
+      let n = 1;
+      while (linha[x + n] === linha[x]) n++;
+      if (linha[x] !== ".") r += `<rect x="${x}" y="${y}" width="${n}" height="1" fill="${COR[linha[x]]}"/>`;
+      x += n;
+    }
+  });
+  return `<svg class="px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${linhas[0].length} ${altura}" shape-rendering="crispEdges" aria-hidden="true">${r}</svg>`;
+}
+const fundo = svg => `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;  // o mesmo desenho, para usar em background do CSS
+const lado = (...desenhos) => {  // junta desenhos lado a lado, alinhados por baixo
+  const altura = Math.max(...desenhos.map(d => d.length));
+  const cheios = desenhos.map(d => [...Array(altura - d.length).fill(".".repeat(d[0].length)), ...d]);
+  return cheios[0].map((_, i) => cheios.map(d => d[i]).join(""));
+};
+
+$("#titulo").innerHTML = pixels(ICONE.abr);
+$("#seta").innerHTML = pixels(ICONE.seta);
+$("#marca").innerHTML = pixels(PLANTA.soja) + pixels(ICONE.abr);
+$("#marca").onclick = e => { e.preventDefault(); history.replaceState(null, "", location.pathname); scrollTo({ top: 0 }); };
+$$("#nav a").forEach(a => a.insertAdjacentHTML("afterbegin", pixels(ICONE[a.dataset.ic])));
+$$("main > section > h2").forEach(h => {
+  const ic = $(`#nav a[href="#${h.parentElement.id}"]`).dataset.ic;
+  h.insertAdjacentHTML("afterbegin", pixels(ICONE[ic]));
+});
+$("#boas-vindas").insertAdjacentHTML("afterbegin", pixels(PLANTA.vagens));
+$("#chao").style.backgroundImage = fundo(pixels([...lado(PLANTA.broto, PLANTA.soja, PLANTA.vagens, PLANTA.soja), ...[...SOLO, ...SOLO.slice(1)].map(l => l.repeat(4))]));
+
+/* A paisagem da capa. Tudo é retângulo num canvas pequeno, que o CSS estica sem suavizar. */
+function cena() {
+  const tela = $("#cena"), capa = $("#topo");
+  const px = Math.max(3, Math.round(capa.clientWidth / 320));  // tamanho, na tela, de um pixel do desenho
+  const W = Math.ceil(capa.clientWidth / px), H = Math.ceil(capa.clientHeight / px);
+  tela.width = W; tela.height = H;
+  const g = tela.getContext("2d");
+  const noite = matchMedia("(prefers-color-scheme: dark)").matches;
+  const P = noite
+    ? { ceu: ["#0b1220", "#0e1829", "#122033", "#17293d", "#1e3347"], astro: "#e6e3cf", astro2: "#c9c6b2", brilho: "#cfd8e6",
+        morro1: "#172c38", morro2: "#17382c", arvore: "#0f2a1b", folha: "#2a6238", folha2: "#16391f", folha3: "#3b7f4c", terra: "#3a281a", terra2: "#4a3523" }
+    : { ceu: ["#a5d5ec", "#b9dff0", "#cde9f2", "#e0f1ef", "#f1f2de"], astro: "#f4c430", astro2: "#f8d968", brilho: "#ffffff",
+        morro1: "#a9cfb0", morro2: "#7db871", arvore: "#3f7d49", folha: "#5fa052", folha2: "#2f6b3c", folha3: "#86c170", terra: "#775333", terra2: "#8f6a45" };
+  const ret = (x, y, w, h, cor) => { g.fillStyle = cor; g.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h)); };
+  const carimba = (linhas, x, base) => linhas.forEach((linha, i) => [...linha].forEach((c, j) =>
+    c !== "." && ret(x + j, base - linhas.length + i, 1, 1, COR[c])));
+  let semente = 11;
+  const sorte = () => (semente = semente * 16807 % 2147483647) / 2147483647;  // sempre a mesma paisagem
+
+  const hor = Math.round(H * .62);
+  P.ceu.forEach((cor, i) => ret(0, hor * i / P.ceu.length, W, hor / P.ceu.length + 1, cor));
+  const noTexto = x => x > W * .3 && x < W * .7;  // o meio do céu fica limpo para o título
+  if (noite) for (let i = 0; i < W / 3; i++) {
+    const x = sorte() * W, y = sorte() * hor * .8;
+    if (!noTexto(x)) ret(x, y, 1, 1, P.brilho);
+  }
+  else for (const x of [.04, .17, .73, .9]) {
+    const y = hor * (.12 + .45 * sorte());
+    ret(x * W, y, 16, 3, P.brilho); ret(x * W + 3, y - 2, 9, 2, P.brilho); ret(x * W + 5, y + 3, 8, 1, P.brilho);
+  }
+  const cx = Math.round(W * .82), cy = Math.round(H * .17), raio = 9;
+  for (let dy = -raio; dy <= raio; dy++) {
+    const w = Math.round(Math.sqrt(raio * raio - dy * dy));
+    ret(cx - w, cy + dy, 2 * w, 1, P.astro);
+  }
+  ret(cx - 4, cy - 4, 3, 3, P.astro2); ret(cx + 2, cy + 1, 4, 3, P.astro2); ret(cx - 5, cy + 4, 2, 2, P.astro2);
+
+  const morro = (alto, onda, a, b) => x => hor - alto - onda * (Math.sin(x / a) + .5 * Math.sin(x / b + 2));
+  const longe = morro(13, 7, 43, 17), perto = morro(4, 4, 31, 12);
+  for (let x = 0; x < W; x++) ret(x, longe(x), 1, hor - longe(x) + 1, P.morro1);
+  for (let x = 0; x < W; x++) ret(x, perto(x), 1, hor - perto(x) + 1, P.morro2);
+  for (let x = 3; x < W; x += 5 + Math.floor(sorte() * 14)) {  // árvores na crista do morro da frente
+    const y = perto(x), alta = sorte() > .5;
+    ret(x + 1, y - 2, 1, 3, COR.s);
+    ret(x, y - (alta ? 6 : 5), 3, alta ? 4 : 3, P.arvore); ret(x - 1, y - (alta ? 5 : 4), 5, 2, P.arvore);
+  }
+  const xc = Math.round(W * .13);
+  carimba(PLANTA.silo, xc + 11, perto(xc + 12) + 2);
+  carimba(PLANTA.celeiro, xc, perto(xc + 5) + 2);
+
+  // lavoura: fileiras de moitas, maiores e mais espaçadas conforme chegam perto
+  ret(0, hor, W, H - hor, P.terra);
+  for (let y = hor, n = 0; ; n++) {
+    const alt = Math.min(8, 2 + Math.floor(n * .7)), larg = alt + 1 + Math.floor(alt / 3);
+    if (y + alt > H - 25) break;
+    for (let x = -(n % 2) * Math.ceil(larg / 2); x < W; x += larg + 1) {
+      ret(x, y + alt - 1, larg, 1, P.folha2);                      // sombra no pé
+      ret(x, y + 1, larg, alt - 2, P.folha);
+      ret(x + 1, y, larg - 2, 1, alt > 3 ? P.folha3 : P.folha);    // topo arredondado, com luz
+      if (alt > 5) { ret(x + 1, y + 2, 2, 1, P.folha3); ret(x + larg - 3, y + 3, 1, 1, P.folha2); }
+    }
+    y += alt + Math.max(1, Math.round(alt / 3));
+  }
+  // primeiro plano: uma fileira de soja e, à direita, o milho safrinha
+  for (let x = 0; x < W; x += 3 + Math.floor(sorte() * 6)) ret(x, H - 5 + Math.floor(sorte() * 4), 1, 1, P.terra2);
+  ret(0, H - 7, W, 1, P.terra2);
+  const fila = ["soja", "vagens", "soja", "broto", "vagens"];
+  for (let x = 2, i = 0; x < W - 8; x += 19, i++)
+    carimba(PLANTA[x > W * .64 ? "milho" : fila[i % fila.length]], x, H - 7);
+}
+cena();
+addEventListener("resize", cena);
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", cena);
+
+/* ---------- Abas e início ---------- */
+function mostraAba(evento) {
+  const id = location.hash.slice(1);
+  const alvo = $$("main > section").some(s => s.id === id) ? id : "janela";
+  $$("main > section").forEach(s => s.hidden = s.id !== alvo);
+  $$("#nav a").forEach(a => a.toggleAttribute("aria-current", a.hash === "#" + alvo));
+  if (alvo === "historico") mostraHistorico();
+  $("main").scrollTop = 0;
+  // sem # na URL, a página fica na capa; vindo da capa desliza, entre abas troca na hora
+  const daCapa = evento && scrollY < $("#app").offsetTop - 5;
+  if (id === alvo) $("#app").scrollIntoView({ behavior: daCapa ? "smooth" : "instant" });
+}
+const opcoesCidade = () => inicio.municipios.map(m => `<option value="${m.codigo}">${esc(m.nome)}</option>`).join("");
+
+(async () => {
+  try {
+    inicio = await pede("/api/inicio");
+  } catch (erro) {
+    $("main").innerHTML = `<p class="erro">Não consegui falar com o servidor do ABR. Ele está rodando? (python web/servidor.py)</p>`;
+    return;
+  }
+  $("#demo").hidden = !inicio.demo;
+  $$("select.cidade").forEach(s => s.innerHTML = opcoesCidade());
+  $$("select.ciclo").forEach(s => s.innerHTML = inicio.ciclos.map(c => `<option value="${c}">${NOME_CICLO[c]}</option>`).join(""));
+  $$(".cidades").forEach(div => div.innerHTML = inicio.municipios.map((m, i) =>
+    `<label><input type="checkbox" value="${m.codigo}" ${inicio.demo || i < 3 ? "checked" : ""}>${esc(m.nome)}</label>`).join(""));
+  const hoje = new Date(); hoje.setMinutes(hoje.getMinutes() - hoje.getTimezoneOffset());
+  $$("input[type=date]").forEach(i => i.value = hoje.toISOString().slice(0, 10));
+  $$("#plantadeira input").forEach(i => { i.value = String(inicio.plantadeira[i.name]).replace(".", ","); i.oninput = mostraCapacidade; });
+  mostraCapacidade();
+  linhaCidade();
+  $("#mais-cidade").onclick = linhaCidade;
+  if (!inicio.rag_indexado) $("#documentos .sub").insertAdjacentHTML("afterend",
+    `<p class="aviso">O índice dos documentos ainda não foi criado. Rode <code>python rag/baixar.py</code>, <code>rag/extrair.py</code> e <code>rag/indexar.py</code>.</p>`);
+  addEventListener("hashchange", mostraAba);
+  mostraAba();
+})();
+</script>
+</body>
+</html>

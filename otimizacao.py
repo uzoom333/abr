@@ -67,6 +67,23 @@ def lucro_milho_por_decendio(janela, produtividade, preco_saca, custo_ha):
     return lucros
 
 
+def talhoes_da_cidade(nome, area, divisao, soja, milho, lucro_soja, prod_milho, preco_milho, custo_milho):
+    """Um talhão por solo da cidade, no formato que o monta_modelo espera.
+    divisao = {solo: fração da área}; soja e milho vêm do zarc_*_por_solo. Usado pela CLI e pela web."""
+    talhoes = []
+    for solo, fracao in divisao.items():
+        janela_milho = [para_ano_safra(d) for d in (milho or {}).get(solo, [])]
+        talhoes.append({
+            "nome": f"{nome} ({solo})",
+            "area": area * fracao,
+            "janelas_soja": {c: [para_ano_safra(d) for d in ds] for c, ds in soja[solo].items()},
+            "lucro_soja": lucro_soja,
+            "lucro_milho": lucro_milho_por_decendio(janela_milho, prod_milho, preco_milho, custo_milho)
+                           if janela_milho else {},
+        })
+    return talhoes
+
+
 # ============================================
 # MODELO
 # ============================================
@@ -310,18 +327,12 @@ def analisar_otimizacao():
 
         area = pede_valor_positivo(f"  Área total em {nomes[codigo]} (ha): ")
         divisao = pede_solos(sorted(soja))
-        for solo, fracao in divisao.items():
-            janela_milho = [para_ano_safra(d) for d in (milho or {}).get(solo, [])]
-            if not janela_milho:
-                print(f"  ⚠️ Sem janela de milho para {solo}: esse talhão fica só com soja.")
-            talhoes.append({
-                "nome": f"{nomes[codigo]} ({solo})",
-                "area": area * fracao,
-                "janelas_soja": {c: [para_ano_safra(d) for d in ds] for c, ds in soja[solo].items()},
-                "lucro_soja": lucro_soja,
-                "lucro_milho": lucro_milho_por_decendio(janela_milho, prod_milho, preco_milho, custo_milho)
-                               if janela_milho else {},
-            })
+        novos = talhoes_da_cidade(nomes[codigo], area, divisao, soja, milho,
+                                  lucro_soja, prod_milho, preco_milho, custo_milho)
+        for talhao in novos:
+            if not talhao["lucro_milho"]:
+                print(f"  ⚠️ Sem janela de milho para {talhao['nome']}: esse talhão fica só com soja.")
+        talhoes.extend(novos)
 
         if input("Adicionar mais uma cidade? (s/n) ").lower() != "s":
             break
