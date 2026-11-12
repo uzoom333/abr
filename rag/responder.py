@@ -6,6 +6,7 @@ Rodar da raiz do projeto:  python rag/responder.py "quantos anos de dados o ZARC
 O modelo só cita [Bloco N]. Quem escreve arquivo e página é o código, para o modelo não inventar a fonte.
 """
 import gc
+import json
 import re
 import sys
 
@@ -42,17 +43,29 @@ def troca_citacoes(resposta, indices, chunks):
     return re.sub(r"\[?Bloco (\d+)\]?", etiqueta, resposta)
 
 
-def pergunta_ao_llm(pergunta, contexto):
+def pergunta_ao_llm_aos_poucos(pergunta, contexto):
+    """Gera a resposta pedaço por pedaço, conforme o modelo escreve."""
     mensagens = [
         {"role": "system", "content": REGRAS},
-        {"role": "user", "content":f"Trechos:\n{contexto}\n \nPergunta: {pergunta}" },
+        {"role": "user", "content": f"Trechos:\n{contexto}\n \nPergunta: {pergunta}"},
     ]
     r = requests.post(URL_OLLAMA, json={"model": LLM, "messages": mensagens,
-                                        "stream": False, "think": False,
+                                        "stream": True, "think": False,
                                         "options": {"temperature": 0, "num_ctx": 4096}},
-                      timeout=300)
+                      stream=True, timeout=300)
     r.raise_for_status()
-    return r.json()["message"]["content"]
+    for linha in r.iter_lines():
+        if linha:
+            yield json.loads(linha)["message"]["content"]
+
+
+def pergunta_ao_llm(pergunta, contexto):
+    return "".join(pergunta_ao_llm_aos_poucos(pergunta, contexto))
+
+
+def busca_trechos(pergunta, modelo, vetores):
+    """Índices dos 5 chunks que vão para o modelo."""
+    return busca_vetorial(pergunta, modelo, vetores, 5)  # a busca que ganhou o placar (28/31)
 
 
 def main():
@@ -60,7 +73,7 @@ def main():
     vetores, chunks = carrega_indice()
     modelo = SentenceTransformer(MODELO)
 
-    indices = busca_vetorial(pergunta, modelo, vetores, 5)  # a busca que ganhou o placar (28/31)
+    indices = busca_trechos(pergunta, modelo, vetores)
 
     del modelo, vetores  # libera a RAM antes de o LLM carregar
     gc.collect()

@@ -129,7 +129,7 @@ With a token, set `ID_CULTURA_MILHO` in `.env` to the AgroAPI id for second-crop
 
 `python teste_otimizacao.py` checks the model against a small instance solvable by hand.
 
-### Document search and answers with citations — RAG (in progress)
+### Document search and answers with citations — RAG
 
 `rag/` is a RAG over 10 public documents: the ZARC ordinances for soybean and second-crop corn in
 Goiás, Embrapa and MAPA notes on the six soil classes, the ZarcPro-Milho methodology, CONAB's
@@ -148,6 +148,8 @@ How it works:
    where the answer is. A hit means one of the five chunks returned is from one of those pages.
 5. `responder.py` sends the question and the retrieved chunks to a local LLM through Ollama. The
    model cites only the block number (`[Bloco 2]`); the code replaces it with the document and page.
+6. `avaliar_respostas.py` generates an answer for each of the 31 questions, writes them to
+   `respostas.csv` and checks whether the answer cites a page from the answer key.
 
 Retrieval results (hit@5, 31 questions):
 
@@ -158,8 +160,18 @@ Retrieval results (hit@5, 31 questions):
 | Hybrid  | 26/31 |
 
 Adding the document title to each chunk was the change that brought vector search to 28/31.
-Answer generation works end to end but has not been evaluated yet. In early tests the model
-sometimes cited the wrong page, so the document and page are now filled in by the code.
+
+Answer results (vector search, top 5 chunks, Qwen3 4B running locally, 31 questions):
+
+| Check                                  | Result |
+|----------------------------------------|--------|
+| Answer cites a page from the answer key | 24/31  |
+
+Citing the right page does not mean the answer is right. Reading `respostas.csv`, the model still
+gets the content wrong in some answers that retrieval got right: it gave the limits of another
+soil class for AD3 and AD4, gave the wrong yield for a corn hybrid, and said irrigated crops must
+follow the ZARC planting dates when the document says the opposite. Retrieval finds the page in
+28 of 31 questions, so the weak part is the 4B model, not the search.
 
 Run from the repository root:
 
@@ -171,6 +183,7 @@ python rag/indexar.py    # chunks + embeddings
 python rag/buscar.py "qual a duração dos ciclos da soja no ZARC?"
 python rag/avaliar.py    # hit@5 of the three searches
 python rag/responder.py "quantos anos de dados o ZARC do milho usa?"   # needs `ollama serve`
+python rag/avaliar_respostas.py   # answers for the 31 questions, needs `ollama serve`
 ```
 
 Exporting writes a `historico_YYYY-MM-DD_HH-MM.xlsx` file in the repository root. These files are generated artefacts and are not tracked by Git.
