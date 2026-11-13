@@ -1,7 +1,7 @@
 from datetime import date
 
-from api import escolher_municipio, pega_zarc, busca_municipios_go
-from zarc import qual_decendio, esta_na_janela, proximo_decendio_valido
+from api import escolher_municipio, pega_zarc, nome_municipio
+from zarc import situacao_na_janela
 
 CICLOS = ["precoce", "medio", "tardio"]
 
@@ -59,17 +59,15 @@ def status_janela(data_ref, ciclo, janelas):
     if not janela_ciclo:
         return None, None
 
-    decendio_data = qual_decendio(data_ref)
+    # Conta pelo ano-safra: numa janela de out a jan a lista chega como
+    # [1, 29, ..., 36] e o fim da janela é o 1, não o 36.
+    status, decendios = situacao_na_janela(data_ref, janela_ciclo)
 
-    if esta_na_janela(data_ref, ciclo, janelas):
-        restantes = janela_ciclo[-1] - decendio_data
-        return "dentro", restantes
+    # O resto do financeiro espera None quando a janela já passou.
+    if status == "passou":
+        return "passou", None
 
-    proximo = proximo_decendio_valido(decendio_data, janela_ciclo)
-    if proximo is not None:
-        return "antes", proximo - decendio_data
-
-    return "passou", None
+    return status, decendios
 
 
 def calcula_opcoes_cidade(codigo, nome, data_ref, custo_ha, preco_saca, produtividade_por_ciclo):
@@ -160,13 +158,8 @@ def analisar_financeiro():
         print("Nenhuma cidade escolhida. Voltando ao menu.")
         return
 
-    todos_municipios = busca_municipios_go()
-
     def nome_por_codigo(codigo):
-        for m in todos_municipios:
-            if m["codigoIBGE"] == codigo:
-                return m["nome"]
-        return "?"
+        return nome_municipio(codigo) or "?"
 
     todas_opcoes = []
     for codigo in codigos_escolhidos:

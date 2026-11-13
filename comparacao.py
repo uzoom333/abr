@@ -1,6 +1,5 @@
-from api import escolher_municipio, pega_zarc, busca_municipios_go
-from zarc import qual_decendio, esta_na_janela, proximo_decendio_valido
-from zarc import qual_decendio, esta_na_janela
+from api import escolher_municipio, pega_zarc, nome_municipio
+from zarc import qual_decendio, situacao_na_janela
 from datetime import date
 
 def comparar_cidades():
@@ -115,18 +114,11 @@ def comparar_cidades():
         primeiro = janela_ciclo[0]
         ultimo = janela_ciclo[-1]
 
-        # 7d. Descobre status + restantes
-        if esta_na_janela(data_plantio, ciclo, janelas):
-            status = "dentro"
-            restantes = ultimo - decendio_data
-        else:
-            proximo = proximo_decendio_valido(decendio_data, janela_ciclo)
-            if proximo is not None:
-                status = "antes"
-                restantes = proximo - decendio_data
-            else:
-                status = "passou"
-                restantes = None
+        # 7d. Descobre status + restantes (conta pelo ano-safra, por causa da
+        # janela que atravessa a virada do ano)
+        status, restantes = situacao_na_janela(data_plantio, janela_ciclo)
+        if status == "passou":
+            restantes = None
 
         # 7e. Adiciona ao resultado
         resultados.append({
@@ -135,13 +127,8 @@ def comparar_cidades():
             "restantes": restantes,    # ← qual variável?
         })
     # 8. BUSCAR NOMES DAS CIDADES
-    todos_municipios = busca_municipios_go()
-    
     def nome_por_codigo(codigo):
-        for m in todos_municipios:
-            if m["codigoIBGE"] == codigo:
-                return m["nome"]
-        return "?"
+        return nome_municipio(codigo) or "?"
     
     # 9. SEPARAR POR STATUS
     dentro = [r for r in resultados if r["status"] == "dentro"]

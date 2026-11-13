@@ -20,7 +20,9 @@ os.chdir(RAIZ)  # os caches e o historico.csv da CLI são relativos à raiz
 sys.path.insert(0, RAIZ)
 
 import api
+import historico as arquivo_historico
 import otimizacao
+import seguro
 from financeiro import CICLOS
 from historico import salvar_consulta
 from zarc import nome_decendio, para_ano_safra, para_calendario, qual_decendio, situacao_na_janela
@@ -37,8 +39,38 @@ class Erro(Exception):
 # ENTRADA
 # ============================================
 
+class Nomes:
+    """nomes.get(codigo, "?") para município de qualquer estado."""
+    def get(self, codigo, padrao="?"):
+        nome = api.nome_municipio(codigo)
+        return nome.title() if nome else padrao
+
+
 def nomes_municipios():
-    return {m["codigoIBGE"]: m["nome"].title() for m in api.busca_municipios_go()}
+    return Nomes()
+
+
+def lista_municipios(uf):
+    municipios = [{"codigo": m["codigoIBGE"], "nome": m["nome"].title()} for m in api.busca_municipios(uf)]
+    return sorted(municipios, key=lambda m: m["nome"])
+
+
+def le_uf(uf):
+    uf = str(uf).upper()
+    if uf not in api.ufs_disponiveis():
+        raise Erro("Estado inválido.")
+    return uf
+
+
+def le_cultura(cultura):
+    if cultura not in culturas_disponiveis():
+        raise Erro("Cultura inválida.")
+    return cultura
+
+
+def culturas_disponiveis():
+    """No modo demo só existe a soja."""
+    return ["soja"] if api.MODO_DEMO else list(api.CULTURAS)
 
 
 def le_data(texto):
@@ -52,7 +84,7 @@ def le_data(texto):
 
 
 def le_ciclo(ciclo):
-    if ciclo not in CICLOS:
+    if ciclo not in api.ORDEM_CICLOS:
         raise Erro("Ciclo inválido.")
     return ciclo
 
@@ -88,7 +120,13 @@ def janela_em_safra(janela):
 def inicio(_):
     return {
         "demo": api.MODO_DEMO,
-        "municipios": [{"codigo": c, "nome": n} for c, n in sorted(nomes_municipios().items(), key=lambda x: x[1])],
+        "limite_cidades": LIMITE_CIDADES,
+        "ufs": api.ufs_disponiveis(),
+        "uf": api.UF_PADRAO,
+        "municipios": lista_municipios(api.UF_PADRAO),
+        "culturas": [{"chave": c, "nome": api.CULTURAS[c]["nome"], **seguro.ECONOMIA_EXEMPLO[c],
+                      "nome_unidade": seguro.NOME_UNIDADE[seguro.ECONOMIA_EXEMPLO[c]["unidade"]]}
+                     for c in culturas_disponiveis()],
         "ciclos": CICLOS,
         "plantadeira": otimizacao.PLANTADEIRA_PADRAO,
         "hipoteses": {
@@ -100,20 +138,52 @@ def inicio(_):
     }
 
 
+def municipios(d):
+    """Os municípios de um estado, para encher as listas de cidade."""
+    return {"municipios": lista_municipios(le_uf(d["uf"]))}
+
+
+def opcoes(d):
+    """Os solos e os ciclos que o ZARC tem para uma cultura numa cidade. Com "codigos"
+    (várias cidades), junta o que aparece em pelo menos uma delas."""
+    cultura = le_cultura(d["cultura"])
+    varias = "codigos" in d
+    codigos = le_codigos(d["codigos"]) if varias else [int(d["codigo"])]
+    por_solo = {}
+    for codigo in codigos:
+        for solo, janelas in (api.zarc_por_solo(codigo, cultura) or {}).items():
+            por_solo.setdefault(solo, set()).update(janelas)
+    if not por_solo:
+        onde = "essas cidades" if varias and len(codigos) > 1 else "essa cidade"
+        raise Erro(f"O ZARC não tem {api.CULTURAS[cultura]['nome'].lower()} para {onde}.")
+    return {"solos": [{"solo": solo, "ciclos": api.ordena_ciclos(por_solo[solo])}
+                      for solo in api.ordena_solos(por_solo)]}
+
+
 def janela(d):
     """Opção 1 da CLI: a data cai na janela do ZARC?"""
-    codigo, ciclo, data = int(d["codigo"]), le_ciclo(d["ciclo"]), le_data(d["data"])
-    janelas = api.pega_zarc(codigo)
-    if janelas is None:
-        raise Erro("Não foi possível obter o zoneamento dessa cidade.")
+    codigo, data = int(d["codigo"]), le_data(d["data"])
+    cultura = le_cultura(d.get("cultura", api.CULTURA_PADRAO))
+    solo, ciclo = d.get("solo", api.SOLO_PADRAO), d["ciclo"]
+    nome_cultura = api.CULTURAS[cultura]["nome"]
+    por_solo = api.zarc_por_solo(codigo, cultura)
+    if not por_solo:
+        raise Erro(f"O ZARC não tem {nome_cultura.lower()} para essa cidade.")
+    if solo not in por_solo:
+        raise Erro(f"O ZARC não tem o solo {solo} para {nome_cultura.lower()} nessa cidade.")
+    janelas = por_solo[solo]
     if ciclo not in janelas:
-        raise Erro(f"O ZARC não tem o ciclo {ciclo} para essa cidade.")
+        raise Erro(f"O ZARC não tem o ciclo {ciclo} para essa cidade nesse solo.")
 
     status, decendios = situacao_na_janela(data, janelas[ciclo])
-    salvar_consulta(codigo, ciclo, data, status == "dentro")
+    salvar_consulta(codigo, ciclo, data, status == "dentro", cultura, solo)
     decendio = qual_decendio(data)
     return {
         "cidade": nomes_municipios().get(codigo, "?"),
+        "uf": api.uf_do_codigo(codigo),
+        "cultura": cultura,
+        "nome_cultura": nome_cultura,
+        "solo": solo,
         "ciclo": ciclo,
         "decendio": decendio,
         "nome_decendio": nome_decendio(decendio),
@@ -121,18 +191,55 @@ def janela(d):
         "janela": janela_em_safra(janelas[ciclo]),
         "status": status,
         "decendios": decendios,
+        "portaria": api.portaria_do_zarc(codigo, cultura),
+    }
+
+
+def plantar(d):
+    """Opção 8 da CLI: a data em todas as culturas. Quais estão dentro da janela?"""
+    codigo, data = int(d["codigo"]), le_data(d["data"])
+    economia = {}
+    for cultura, valores in (d.get("economia") or {}).items():
+        nome = api.CULTURAS[le_cultura(cultura)]["nome"]
+        economia[cultura] = {"produtividade": le_positivo(valores["produtividade"], f"Produtividade de {nome.lower()}"),
+                             "preco": le_positivo(valores["preco"], f"Preço de {nome.lower()}"),
+                             "custo": le_positivo(valores["custo"], f"Custo de {nome.lower()}")}
+    situacao = seguro.culturas_na_data(codigo, data)
+    linhas = []
+    for linha in situacao:
+        if linha["cultura"] not in culturas_disponiveis():
+            continue
+        # a faixa desenhada é a janela mais larga: a união de todos os solos e ciclos
+        uniao = set()
+        for janelas in (api.zarc_por_solo(codigo, linha["cultura"]) or {}).values():
+            for janela_ciclo in janelas.values():
+                uniao.update(janela_ciclo)
+        linhas.append({"cultura": linha["cultura"], "nome": linha["nome"], "status": linha["status"],
+                       "decendios": linha["decendios"], "onde": linha["onde"], "todas": linha["todas"],
+                       "janela": janela_em_safra(uniao)})
+    decendio = qual_decendio(data)
+    return {
+        "cidade": nomes_municipios().get(codigo, "?"),
+        "uf": api.uf_do_codigo(codigo),
+        "nome_decendio": nome_decendio(decendio),
+        "t": para_ano_safra(decendio),
+        "linhas": linhas,
+        "dentro": sum(1 for l in linhas if l["status"] == "dentro"),
+        "ranking": seguro.ranking_das_seguras(situacao, economia),
     }
 
 
 def comparar(d):
-    """Opção 3 da CLI: a mesma data e ciclo em várias cidades."""
+    """Opção 3 da CLI: a mesma data e ciclo em várias cidades. Na tela, de qualquer cultura e solo."""
     codigos, ciclo, data = le_codigos(d["codigos"]), le_ciclo(d["ciclo"]), le_data(d["data"])
+    cultura, solo = le_cultura(d.get("cultura", api.CULTURA_PADRAO)), d.get("solo", api.SOLO_PADRAO)
     nomes = nomes_municipios()
     linhas, sem_zarc, sem_ciclo = [], [], []
     for codigo in codigos:
         nome = nomes.get(codigo, "?")
-        janelas = api.pega_zarc(codigo)
-        if janelas is None:
+        por_solo = api.zarc_por_solo(codigo, cultura)
+        janelas = (por_solo or {}).get(solo, {})
+        if not por_solo:
             sem_zarc.append(nome)
         elif ciclo not in janelas:
             sem_ciclo.append(nome)
@@ -149,21 +256,23 @@ def comparar(d):
 
 
 def financeiro(d):
-    """Opção 6 da CLI: cidades e ciclos ordenados pelo lucro líquido estimado."""
+    """Opção 6 da CLI: cidades e ciclos ordenados pelo lucro líquido estimado.
+    Na tela, de qualquer cultura e solo; a produtividade vem por ciclo."""
     codigos, data = le_codigos(d["codigos"]), le_data(d["data"])
+    cultura, solo = le_cultura(d.get("cultura", api.CULTURA_PADRAO)), d.get("solo", api.SOLO_PADRAO)
     custo = le_positivo(d["custo_ha"], "Custo por hectare")
-    preco = le_positivo(d["preco_saca"], "Preço da saca")
-    produtividade = {c: le_positivo(d["produtividade"][c], f"Produtividade {c}") for c in CICLOS}
+    preco = le_positivo(d["preco_saca"], "Preço")
+    produtividade = {le_ciclo(c): le_positivo(v, f"Produtividade {c}") for c, v in d["produtividade"].items()}
 
     nomes = nomes_municipios()
     linhas, sem_zarc = [], []
     for codigo in codigos:
-        janelas = api.pega_zarc(codigo)
-        if janelas is None:
+        janelas = (api.zarc_por_solo(codigo, cultura) or {}).get(solo)
+        if not janelas:
             sem_zarc.append(nomes.get(codigo, "?"))
             continue
-        for ciclo in CICLOS:
-            if ciclo not in janelas:
+        for ciclo in api.ordena_ciclos(janelas):
+            if ciclo not in produtividade:
                 continue
             status, decendios = situacao_na_janela(data, janelas[ciclo])
             bruto = produtividade[ciclo] * preco
@@ -249,6 +358,7 @@ def otimizar(d):
 def le_historico():
     if not os.path.exists("historico.csv"):
         return []
+    arquivo_historico.atualiza_cabecalho("historico.csv")  # histórico antigo não tinha cultura nem solo
     with open("historico.csv", encoding="utf-8", newline="") as f:
         return list(csv.DictReader(f))
 
@@ -259,7 +369,10 @@ def historico(_):
     nomes = nomes_municipios()
     for linha in linhas:
         if linha["cidade"].isdigit():
-            linha["cidade"] = nomes.get(int(linha["cidade"]), linha["cidade"])
+            uf = api.uf_do_codigo(linha["cidade"])
+            linha["cidade"] = nomes.get(int(linha["cidade"]), linha["cidade"]) + (f" ({uf})" if uf else "")
+        cultura = api.CULTURAS.get(linha["cultura"])
+        linha["nome_cultura"] = cultura["nome"] if cultura else linha["cultura"]
     por_ciclo = {c: sum(1 for l in linhas if l["ciclo"] == c) for c in CICLOS}
     dentro = sum(1 for l in linhas if l["resultado"] == "dentro")
     return {"linhas": linhas[::-1], "total": len(linhas), "por_ciclo": por_ciclo,
@@ -274,9 +387,10 @@ def planilha_historico():
     wb = Workbook()
     ws = wb.active
     ws.title = "Historico"
-    ws.append(["data_consulta", "cidade", "ciclo", "data_plantio", "resultado"])
+    colunas = arquivo_historico.CABECALHO.split(",")
+    ws.append(colunas)
     for linha in le_historico():
-        ws.append([linha[c] for c in ("data_consulta", "cidade", "ciclo", "data_plantio", "resultado")])
+        ws.append([linha[c] for c in colunas])
     for celula in ws[1]:
         celula.font = Font(bold=True)
     saida = io.BytesIO()
@@ -350,7 +464,8 @@ def perguntar(d):
 # HTTP
 # ============================================
 
-ROTAS = {"/api/inicio": inicio, "/api/janela": janela, "/api/comparar": comparar,
+ROTAS = {"/api/inicio": inicio, "/api/municipios": municipios, "/api/opcoes": opcoes,
+         "/api/janela": janela, "/api/plantar": plantar, "/api/comparar": comparar,
          "/api/financeiro": financeiro, "/api/otimizar": otimizar, "/api/historico": historico}
 
 

@@ -1,25 +1,26 @@
 # ABR
 
-ABR is an agricultural decision-support command-line application that uses official Brazilian Agricultural Climate Risk Zoning (ZARC) data to evaluate soybean planting windows in Goiás.
+ABR is an agricultural decision-support application (command line and web page) that uses official Brazilian Agricultural Climate Risk Zoning (ZARC) data to evaluate planting windows for nine crops in any Brazilian state.
 
 ## Project Overview
 
-The application connects to Embrapa's AgroAPI, searches municipalities in Goiás, and checks a proposed planting date against the available ZARC windows for early-, medium-, or late-cycle soybeans. It is an educational software project: its output supports exploration of public zoning data and does not replace professional agronomic advice.
+The application connects to Embrapa's AgroAPI, searches the municipalities of a state, and checks a proposed planting date against the ZARC window for a crop, a soil class and a cycle. Planting inside the window is the Ministry of Agriculture's condition for Proagro and for subsidized rural insurance. It is an educational software project: its output supports exploration of public zoning data and does not replace professional agronomic advice.
 
-Current features (V2) include:
+Current features (V3):
 
-- support for every municipality in Goiás (245 with an API token; five bundled in demo mode);
-- planting-window checks by soybean cycle and date;
+- nine crops: soybean, first- and second-crop corn, rice, beans, wheat, cotton, sugarcane and arabica coffee;
+- municipalities of every state with an API token (five municipalities in Goiás, soybean only, in demo mode);
+- planting-window checks by crop, soil class, cycle and date;
+- "what to plant": the same date checked across all crops, and the profit per hectare of the ones inside the window;
 - comparison between cities, up to ten at a time;
-- local query history;
-- usage statistics over the history, with ASCII charts;
-- export of the history to Excel (`.xlsx`);
+- financial analysis: profit per hectare by cycle, with the cities where each cycle can still be planted;
+- a linear program that plans soybean and second-crop corn planting (see below);
+- a RAG over public agricultural documents, with retrieval measured against a 31-question answer key (see below);
+- a web interface with the same features (see below);
+- local query history, usage statistics with ASCII charts, and export to Excel (`.xlsx`);
 - local caching to reduce API calls.
 
-In progress (V3):
-
-- a linear program that plans soybean and second-crop corn planting (see below);
-- a RAG over public agricultural documents, with retrieval measured against a 31-question answer key (see below).
+In the command line, city comparison and financial analysis still use soybean on AD2 soil only; in the web interface they take any crop and soil.
 
 ## Motivation
 
@@ -29,7 +30,9 @@ The project is intentionally evolving alongside my studies in Linear Algebra, ma
 
 ## Data and Decision Logic
 
-ABR requests zoning records from the AgroAPI Agritec v2 `/zoneamento` endpoint. The current query uses soybeans (`idCultura=60`), a maximum risk level of 20%, and AD2 soil records. Calendar dates are mapped to ten-day periods (*decêndios*) before being compared with the zoning windows returned by the API.
+ABR requests zoning records from the AgroAPI Agritec v2 `/zoneamento` endpoint, one request per municipality and crop, with a maximum risk level of 20%. Each record carries a soil class (AD1–AD6, or sandy / medium / clay texture, depending on the crop) and a cycle (early, medium, late, semi-perennial or perennial). Calendar dates are mapped to ten-day periods (*decêndios*) before being compared with the zoning windows returned by the API. Every answer is cached in `cache_zarc_bruto.json`, so a municipality and crop pair is requested only once; the free AgroAPI plan allows 1,000 requests per month.
+
+Profit figures use yield, price and cost typed by the user. The form starts with example values (`ECONOMIA_EXEMPLO` in `seguro.py`): the yields are CONAB national averages (grain survey 2025/26, 11th report; sugarcane 2026/27, 2nd report; coffee 2026, 3rd report), while **prices and costs are placeholders with no source** and must be replaced before reading any result.
 
 The underlying records come from an external public service and may be unavailable, revised, or incomplete. Always consult the official ZARC publications for decisions with real agricultural consequences.
 
@@ -61,8 +64,8 @@ python main.py
 
 When no valid `ACCESS_TOKEN` is found, ABR starts in **demo mode** and prints a
 notice at startup. Every feature works — municipality search, planting-window
-checks, comparison, history, statistics, and Excel export — but the data is limited to the
-municipalities bundled in `demo/`:
+checks, comparison, history, statistics, and Excel export — but the data is limited to soybean
+on AD2 soil in the municipalities bundled in `demo/`:
 
 | IBGE code | Municipality |
 |-----------|--------------|
@@ -76,9 +79,9 @@ These are real records retrieved from the AgroAPI, not synthetic values, and the
 are a frozen snapshot: they are not refreshed and may fall behind the official
 publications. Searching for any other municipality returns no results in demo mode.
 
-### Full installation (all 245 municipalities in Goiás)
+### Full installation (all crops and states)
 
-For live data across the whole state, provide an AgroAPI token as described below.
+For live data on every crop and state, provide an AgroAPI token as described below.
 As soon as a valid `ACCESS_TOKEN` is present, ABR leaves demo mode automatically
 and queries the API — no flags or code changes required.
 
@@ -112,9 +115,9 @@ An access token is available after registration in the [AgroAPI portal](https://
 python main.py
 ```
 
-The interactive menu provides a new planting-window query, query history, municipality comparison, history statistics, and Excel export.
+The interactive menu has nine options: new planting-window query (state, municipality, crop, soil, cycle and date), query history, municipality comparison, history statistics, Excel export, financial analysis, soybean + second-crop corn optimization, what is safe to plant, and exit.
 
-### Soybean + second-crop corn optimization (in progress)
+### Soybean + second-crop corn optimization
 
 Menu option 7 builds a linear program (`otimizacao.py`, solved with PuLP/CBC) that plans soybean
 planting by cycle and ten-day period and the second-crop corn (*milho safrinha*) that follows it,
@@ -125,9 +128,11 @@ The report shows the plan and the shadow prices of each binding limit.
 Assumptions still to be checked are grouped at the top of `otimizacao.py` (cycle lengths, the
 harvest-to-planting gap, corn yield loss per ten-day delay, default planter). In demo mode the corn
 windows in `demo/demo_zarc_milho.json` are **illustrative, written by hand, not AgroAPI records**.
-With a token, set `ID_CULTURA_MILHO` in `.env` to the AgroAPI id for second-crop corn.
+With a token, the corn windows come from the AgroAPI (`idCultura=57`, second-crop corn; `ID_CULTURA_MILHO`
+in `.env` overrides it).
 
-`python teste_otimizacao.py` checks the model against a small instance solvable by hand.
+`python teste_otimizacao.py` checks the model against a small instance solvable by hand, and
+`python teste_virada.py` checks windows that cross the turn of the year.
 
 ### Document search and answers with citations — RAG
 
@@ -190,10 +195,10 @@ Exporting writes a `historico_YYYY-MM-DD_HH-MM.xlsx` file in the repository root
 
 ## Web interface
 
-`web/` has the same features as the CLI in a browser page: planting window, city comparison,
-financial analysis, the soybean + corn optimization, the query history, and a tab that asks the
-RAG. It calls the same functions the CLI uses and adds no dependencies (Python's `http.server` and
-one HTML file, no build step).
+`web/` has the same features as the CLI in a browser page: what to plant, planting window, city
+comparison, financial analysis, the soybean + corn optimization, the query history, and a tab that
+asks the RAG. A selector in the sidebar changes the state. It calls the same functions the CLI uses
+and adds no dependencies (Python's `http.server` and one HTML file, no build step).
 
 ```bash
 python web/servidor.py     # then open http://localhost:8000
@@ -215,8 +220,10 @@ abr/
 ├── estatistica.py    # Summary statistics and ASCII charts
 ├── exportacao.py     # Excel export of the query history
 ├── financeiro.py     # Profit comparison by city and cycle
+├── seguro.py         # What is safe to plant: one date across all crops, and profit per hectare
 ├── otimizacao.py     # Linear program: soybean + second-crop corn plan
 ├── teste_otimizacao.py # Hand-checkable test of the linear program
+├── teste_virada.py   # Test of windows that cross the turn of the year
 ├── web/              # Web interface: servidor.py (JSON over http.server) and index.html
 ├── rag/              # RAG: download, extraction, index, three searches, hit@5 evaluation, answers via Ollama
 ├── demo/             # Bundled sample data used when no API token is present
@@ -230,11 +237,12 @@ Runtime files such as `.env`, API caches, query-history CSV files, and generated
 
 ## Roadmap
 
-- broaden crop, harvest-season, soil, and risk-level support;
+- sourced prices and production costs for the nine crops, in place of the placeholder values;
+- crop and soil choice in the command-line comparison and financial analysis, as in the web interface;
+- an agent in which a language model picks among the planting-window, financial, optimization and RAG functions to answer a question written in plain text;
+- other risk levels besides 20%;
 - improve automated testing and error handling around the external API;
-- explore cost models and mathematical optimization for agricultural decisions;
-- consider a web interface after the command-line workflow is stable;
-- validate future decision-support assumptions with domain specialists.
+- validate the decision-support assumptions with domain specialists.
 
 These are directions for future study, not completed features.
 
@@ -242,6 +250,7 @@ These are directions for future study, not completed features.
 
 - [ZARC portal — Brazilian Ministry of Agriculture](https://mapa-indicadores.agricultura.gov.br/publico/extensions/Zarc/Zarc.html)
 - [AgroAPI Agritec — Embrapa](https://www.agroapi.cnptia.embrapa.br/)
+- [CONAB crop surveys](https://www.gov.br/conab/pt-br/atuacao/informacoes-agropecuarias/safras) — national average yields used as example values
 
 ## Author
 

@@ -22,7 +22,7 @@ Colheita e plantio usam equipes diferentes, por isso há uma só restrição de 
 
 import pulp
 
-from api import escolher_municipio, busca_municipios_go, zarc_soja_por_solo, zarc_milho_por_solo
+from api import escolher_municipio, nome_municipio, zarc_soja_por_solo, zarc_milho_por_solo
 from financeiro import pede_valor_positivo, CICLOS
 from zarc import para_ano_safra, para_calendario, nome_decendio
 
@@ -307,12 +307,14 @@ def analisar_otimizacao():
     cap = capacidade_plantadeira(**maquina)
     print(f"  → {cap:.0f} ha por decêndio")
 
-    nomes = {m["codigoIBGE"]: m["nome"] for m in busca_municipios_go()}
+    nomes = {}
     talhoes = []
     codigos = []
     print("\nCIDADES (até 10)")
     while len(codigos) < 10:
         codigo = escolher_municipio()
+        if codigo is not None:
+            nomes[codigo] = nome_municipio(codigo)
         if codigo is None or codigo in codigos:
             if input("Tentar outra cidade? (s/n) ").lower() != "s":
                 break

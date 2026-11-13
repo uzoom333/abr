@@ -7,13 +7,13 @@
 <style>
 :root {
   --fundo: #f5f3ec; --papel: #fffdf7; --tinta: #1c241e; --apagado: #5d6860; --linha: #d8d4c6;
-  --verde: #2c6a3b; --verde-claro: #b3d8b7; --milho: #b97a08; --milho-claro: #edd28f;
+  --verde: #2c6a3b; --verde-claro: #b3d8b7; --janela: #b3d8b7; --milho: #b97a08; --milho-claro: #edd28f;
   --alerta: #a83a28; --alerta-claro: #f3d9d2; --vazio: #ebe8dd; --borda: #b3ab93; --sombra: #dcd7c8; --verde-fundo: #1c4526;
 }
 @media (prefers-color-scheme: dark) {
   :root {
     --fundo: #131714; --papel: #1a1f1b; --tinta: #e4e7e1; --apagado: #98a39a; --linha: #2f3731;
-    --verde: #7fc48c; --verde-claro: #25422b; --milho: #e2aa3d; --milho-claro: #4a3a14;
+    --verde: #7fc48c; --verde-claro: #25422b; --janela: #3a8f4d; --milho: #e2aa3d; --milho-claro: #4a3a14;
     --alerta: #e58370; --alerta-claro: #4a241d; --vazio: #232a25; --borda: #46524a; --sombra: #0b0e0c; --verde-fundo: #3f7d4d;
   }
 }
@@ -41,6 +41,16 @@ html { scroll-behavior: smooth; scroll-snap-type: y mandatory; }
 .marca { display: flex; align-items: flex-end; gap: .6rem; padding: 0 .45rem; color: inherit; }
 .marca svg { width: 32px; }
 .marca svg + svg { width: 57px; margin-bottom: 3px; }
+.estado { padding: 0 .45rem; }
+.estado[hidden] { display: none; }
+.onde { font-size: .8rem; color: var(--apagado); margin: .3rem 0 0; }
+details.eco { margin-top: 1rem; border-top: 1px solid var(--linha); padding-top: .8rem; }
+details.eco summary { cursor: pointer; font-size: .9rem; font-weight: 600; width: fit-content; }
+#economia { margin-top: .5rem; min-width: 34rem; }
+#economia td, #economia th { border: 0; padding: .2rem .7rem .2rem 0; }
+#economia input { margin: 0; padding: .3rem .45rem; min-width: 6rem; }
+#economia small { color: var(--apagado); white-space: nowrap; }
+.saida h3 { font-size: 1.05rem; margin: 1.8rem 0 .4rem; }
 nav { display: flex; flex-direction: column; gap: 3px; }
 nav a { display: flex; align-items: center; gap: .65rem; color: var(--tinta); text-decoration: none; padding: .4rem .45rem; font-size: .95rem; border-left: 3px solid transparent; }
 nav a svg { width: 24px; flex: none; }
@@ -66,7 +76,7 @@ main:has(#documentos:not([hidden])) .chao { display: none; }
 }
 
 form { background: var(--papel); border: 2px solid var(--borda); box-shadow: 4px 4px 0 var(--sombra); padding: 1rem 1.1rem 1.1rem; }
-.campos { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: .8rem 1rem; }
+.campos { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: .8rem 1rem; align-items: end; }
 .campos.c5 { grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr)); }
 label, legend { font-size: .82rem; color: var(--apagado); }
 label { display: block; }
@@ -85,9 +95,11 @@ button { cursor: pointer; border-radius: 0; padding: .5rem 1rem; }
 .leve:hover { border-color: var(--borda); }
 .dica { font-size: .85rem; color: var(--apagado); margin: .5rem 0 0; }
 
-.cidades { display: flex; flex-wrap: wrap; gap: .3rem 1.1rem; margin-top: .3rem; max-height: 11rem; overflow-y: auto; }
-.cidades label { display: flex; align-items: center; gap: .4rem; font-size: .95rem; color: var(--tinta); }
-.cidades input { width: auto; margin: 0; }
+.cidades select { max-width: 22rem; margin-top: 0; font-size: .82rem; }
+.escolhidas { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .6rem; }
+.escolhidas:empty { display: none; }
+.escolhidas button { display: flex; align-items: center; gap: .5rem; color: var(--tinta); font-size: .92rem; }
+.escolhidas button span { color: var(--apagado); }
 .linha-cidade { display: grid; grid-template-columns: minmax(9rem, 2fr) minmax(6rem, 1fr) minmax(8rem, 1.4fr) auto; gap: .6rem; align-items: end; margin-top: .6rem; }
 @media (max-width: 34rem) { .linha-cidade { grid-template-columns: 1fr 1fr; } }
 
@@ -111,18 +123,20 @@ th { font-size: .78rem; font-weight: 600; color: var(--apagado); }
 td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
 
 /* faixa do ano-safra: 12 meses, 3 decêndios cada, de setembro a agosto */
-.faixa { display: flex; gap: 5px; min-width: 36rem; }
+.faixa { display: flex; gap: 5px; min-width: 36rem; padding: 4px; }
 .faixa .mes { flex: 1; }
 .faixa .mes span { display: block; font-size: .68rem; color: var(--apagado); text-align: center; margin-bottom: 2px; }
 .faixa .decs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
 .faixa i { display: block; height: 1.5rem; background: var(--vazio); border-radius: 2px; font-style: normal;
   font-size: .62rem; line-height: 1.5rem; text-align: center; overflow: hidden; font-variant-numeric: tabular-nums; }
-.faixa i.j { background: var(--verde-claro); }
+.faixa i.j { background: var(--janela); }
 .faixa i.p { background: var(--verde); color: var(--papel); font-weight: 600; }
 .faixa.milho i.j { background: var(--milho-claro); }
 .faixa.milho i.p { background: var(--milho); color: var(--papel); }
-.faixa i.m { box-shadow: 0 0 0 2px var(--tinta); position: relative; z-index: 1; }
+.faixa i.m { box-shadow: 0 0 0 2px var(--fundo), 0 0 0 4px var(--tinta); position: relative; z-index: 1; }
 .faixa.baixa i { height: 1rem; }
+.faixa.baixa { min-width: 29rem; }
+#plantar td:first-child { white-space: nowrap; }
 .legenda { display: flex; flex-wrap: wrap; gap: .3rem 1.2rem; font-size: .8rem; color: var(--apagado); margin-top: .6rem; }
 .legenda b { display: inline-block; width: .8rem; height: .8rem; border-radius: 2px; vertical-align: -1px; margin-right: .3rem; }
 
@@ -170,8 +184,8 @@ details.trechos summary { cursor: pointer; color: var(--apagado); width: fit-con
   <canvas id="cena" aria-hidden="true"></canvas>
   <div class="capa-texto">
     <h1 id="titulo" aria-label="ABR"></h1>
-    <p>Janelas de plantio de soja em Goiás, pelo zoneamento do ZARC</p>
-    <a class="acao" href="#janela">Começar</a>
+    <p>Janelas de plantio de nove culturas em todo o Brasil, pelo zoneamento do ZARC</p>
+    <a class="acao" href="#plantar">Começar</a>
     <div class="seta" id="seta"></div>
   </div>
 </div>
@@ -179,7 +193,9 @@ details.trechos summary { cursor: pointer; color: var(--apagado); width: fit-con
 <div class="app" id="app">
 <aside class="lado">
   <a class="marca" href="#topo" id="marca" aria-label="ABR, voltar para a capa"></a>
+  <label class="estado" id="estado">Estado <select id="uf"></select></label>
   <nav id="nav">
+    <a href="#plantar" data-ic="tres">O que plantar</a>
     <a href="#janela" data-ic="broto">Janela de plantio</a>
     <a href="#comparar" data-ic="dois">Comparar cidades</a>
     <a href="#financeiro" data-ic="saca">Análise financeira</a>
@@ -192,13 +208,33 @@ details.trechos summary { cursor: pointer; color: var(--apagado); width: fit-con
 
 <main>
 
-<section id="janela">
-  <h2>Janela de plantio</h2>
-  <p class="sub">A data que você quer plantar está dentro da janela do ZARC para a cidade e o ciclo?</p>
+<section id="plantar">
+  <h2>O que plantar</h2>
+  <p class="sub">Quais culturas estão dentro da janela do ZARC na cidade e na data, e qual delas dá mais lucro por hectare. Plantar dentro da janela é a condição do Ministério da Agricultura para o Proagro e para o seguro rural com subvenção.</p>
   <form>
     <div class="campos">
       <label>Cidade <select name="codigo" class="cidade"></select></label>
-      <label>Ciclo da soja <select name="ciclo" class="ciclo"></select></label>
+      <label>Data do plantio <input type="date" name="data" min="2024-01-01" max="2030-12-31" required></label>
+    </div>
+    <details class="eco">
+      <summary>Produtividade, preço e custo de cada cultura</summary>
+      <div class="rolagem"><table id="economia"></table></div>
+      <p class="dica">A produtividade já preenchida é a média nacional da Conab (safra 2025/26); preço e custo são só um exemplo. Troque pelos seus: o ABR não busca preço nem custo real.</p>
+    </details>
+    <button class="acao">Ver culturas</button>
+  </form>
+  <div class="saida"></div>
+</section>
+
+<section id="janela" hidden>
+  <h2>Janela de plantio</h2>
+  <p class="sub">A data que você quer plantar está dentro da janela do ZARC para a cidade, a cultura, o solo e o ciclo?</p>
+  <form>
+    <div class="campos c5">
+      <label>Cidade <select name="codigo" class="cidade"></select></label>
+      <label>Cultura <select name="cultura"></select></label>
+      <label>Solo <select name="solo" required></select></label>
+      <label>Ciclo <select name="ciclo" required></select></label>
       <label>Data do plantio <input type="date" name="data" min="2024-01-01" max="2030-12-31" required></label>
     </div>
     <button class="acao">Consultar</button>
@@ -208,10 +244,12 @@ details.trechos summary { cursor: pointer; color: var(--apagado); width: fit-con
 
 <section id="comparar" hidden>
   <h2>Comparar cidades</h2>
-  <p class="sub">A mesma data e o mesmo ciclo em até 10 cidades, para ver onde a janela está aberta.</p>
+  <p class="sub">A mesma data, cultura, solo e ciclo em até 10 cidades, para ver onde a janela está aberta.</p>
   <form>
-    <div class="campos">
-      <label>Ciclo da soja <select name="ciclo" class="ciclo"></select></label>
+    <div class="campos c5">
+      <label>Cultura <select name="cultura" class="cultura"></select></label>
+      <label>Solo <select name="solo" required></select></label>
+      <label>Ciclo <select name="ciclo" required></select></label>
       <label>Data do plantio <input type="date" name="data" min="2024-01-01" max="2030-12-31" required></label>
     </div>
     <fieldset><legend>Cidades</legend><div class="cidades"></div></fieldset>
@@ -222,22 +260,20 @@ details.trechos summary { cursor: pointer; color: var(--apagado); width: fit-con
 
 <section id="financeiro" hidden>
   <h2>Análise financeira</h2>
-  <p class="sub">Cidades e ciclos ordenados pelo lucro líquido por hectare, olhando só as janelas que ainda dá para plantar.</p>
+  <p class="sub">Ciclos da cultura ordenados pelo lucro líquido por hectare, com as cidades onde ainda dá para plantar cada um.</p>
   <form>
-    <div class="campos">
-      <label>Custo de produção (R$/ha) <input name="custo_ha" inputmode="decimal" value="4500"></label>
-      <label>Preço da saca de 60 kg (R$) <input name="preco_saca" inputmode="decimal" value="120"></label>
+    <div class="campos c5">
+      <label>Cultura <select name="cultura" class="cultura"></select></label>
+      <label>Solo <select name="solo" required></select></label>
+      <label>Custo (R$/ha) <input name="custo_ha" inputmode="decimal"></label>
+      <label><span id="rotulo-preco">Preço (R$)</span> <input name="preco_saca" inputmode="decimal"></label>
       <label>Data de referência <input type="date" name="data" min="2024-01-01" max="2030-12-31" required></label>
     </div>
-    <fieldset><legend>Produtividade esperada (sc/ha)</legend>
-      <div class="campos">
-        <label>Precoce <input name="precoce" inputmode="decimal" value="58"></label>
-        <label>Médio <input name="medio" inputmode="decimal" value="62"></label>
-        <label>Tardio <input name="tardio" inputmode="decimal" value="64"></label>
-      </div>
+    <fieldset><legend id="rotulo-prod">Produtividade esperada</legend>
+      <div class="campos" id="prod-ciclos"></div>
     </fieldset>
     <fieldset><legend>Cidades</legend><div class="cidades"></div></fieldset>
-    <p class="dica">Os valores já preenchidos são só um exemplo. Troque pelos seus: o ABR não busca preço nem custo real.</p>
+    <p class="dica">A produtividade já preenchida parte da média nacional da Conab (safra 2025/26); a diferença entre os ciclos da soja, o preço e o custo são só um exemplo. Troque pelos seus: o ABR não busca preço nem custo real.</p>
     <button class="acao">Calcular</button>
   </form>
   <div class="saida"></div>
@@ -317,7 +353,9 @@ details.trechos summary { cursor: pointer; color: var(--apagado); width: fit-con
 
 <script>
 const MESES = ["set", "out", "nov", "dez", "jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago"];
-const NOME_CICLO = { precoce: "Precoce", medio: "Médio", tardio: "Tardio" };
+const NOME_CICLO = { precoce: "Precoce", medio: "Médio", tardio: "Tardio", semiperene: "Semiperene", perene: "Perene" };
+const nomeCiclo = c => NOME_CICLO[c] || c;
+const nomeSolo = s => s.startsWith("AD") ? s : s.toLowerCase().replace("media", "média");
 const $ = (s, pai = document) => pai.querySelector(s);
 const $$ = (s, pai = document) => [...pai.querySelectorAll(s)];
 const esc = t => String(t).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -369,16 +407,81 @@ function liga(id, monta, mostra) {
     try {
       const f = Object.fromEntries(new FormData(form));
       const [rota, dados] = monta(f, form);
-      saida.innerHTML = mostra(await pede(rota, dados), f);
+      saida.innerHTML = mostra(await pede(rota, dados), f, form);
     } catch (erro) {
       saida.innerHTML = `<p class="erro">${esc(erro.message)}</p>`;
     }
     botao.disabled = false;
+    saida.scrollIntoView({ behavior: "smooth", block: "start" });  // o resultado fica abaixo do formulário
   });
 }
-const marcadas = form => $$(".cidades input:checked", form).map(c => +c.value);
+const marcadas = form => $$(".escolhidas button", form).map(b => +b.value);
+
+/* ---------- O que plantar ---------- */
+const dataPorExtenso = iso => new Date(iso + "T12:00").toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" });
+const ondeVale = l => l.status !== "dentro" ? "" : `<p class="onde">${l.todas ? "Vale para todos os solos e ciclos." :
+  "Vale para " + Object.entries(l.onde).map(([c, solos]) => `${nomeCiclo(c).toLowerCase()}: ${solos.map(nomeSolo).join(", ")}`).join("; ") + "."}</p>`;
+const unid = (n, u) => `${n.toLocaleString("pt-BR")} ${u}`;
+function economiaDoForm(f) {
+  const economia = {};
+  inicio.culturas.forEach(c => economia[c.chave] = { produtividade: f["prod_" + c.chave], preco: f["preco_" + c.chave], custo: f["custo_" + c.chave] });
+  return economia;
+}
+const ranking = r => !r.ranking.length ? "" : `
+  <h3>Qual compensa mais, entre as que estão dentro da janela</h3>
+  <div class="rolagem"><table>
+    <tr><th></th><th>Cultura</th><th class="n">Produtividade</th><th class="n">Preço</th><th class="n">Receita por ha</th><th class="n">Custo por ha</th><th class="n">Lucro por ha</th></tr>
+    ${r.ranking.map((l, i) => `<tr><td class="n">${i + 1}</td><td>${esc(l.nome)}</td><td class="n">${unid(l.produtividade, l.unidade + "/ha")}</td>
+      <td class="n">${reais(l.preco)}/${l.unidade}</td><td class="n">${reais(l.receita)}</td><td class="n">${reais(l.custo)}</td>
+      <td class="n"><strong>${reais(l.lucro)}</strong></td></tr>`).join("")}
+  </table></div>
+  <p class="nota">Conta feita com a produtividade, o preço e o custo do formulário acima (abra "Produtividade, preço e custo de cada cultura" para trocar). Não entram frete, impostos, financiamento nem arrendamento. Cana e café são culturas de vários anos: o valor é de um ano de lavoura já formada, não do ano do plantio.</p>
+  <h3>Janela de cada cultura</h3>`;
+liga("plantar", f => ["/api/plantar", { codigo: f.codigo, data: f.data, economia: economiaDoForm(f) }], (r, f) => `
+  <div class="resultado"><div class="planta">${pixels(PLANTA[r.dentro ? "soja" : "broto"], 10)}</div><div>
+  <p class="veredito ${r.dentro ? "dentro" : "fora"}">${r.dentro ? plural(r.dentro, "cultura dentro da janela", "culturas dentro da janela") : "Nenhuma cultura dentro da janela"}</p>
+  <p>${esc(r.cidade)} (${r.uf}), ${dataPorExtenso(f.data)}, que cai no ${r.nome_decendio}.${r.ranking.length > 1 ? ` Entre elas, ${esc(r.ranking[0].nome.toLowerCase())} dá o maior lucro por hectare.` : ""}</p></div></div>
+  ${ranking(r)}
+  <div class="rolagem"><table>
+    <tr><th>Cultura</th><th>Situação na data</th><th style="width:60%">Janela no ano-safra</th></tr>
+    ${r.linhas.map((l, i) => `<tr><td>${esc(l.nome)}</td>
+      <td>${l.status === "sem_zarc" ? `<span class="selo">sem zoneamento</span>` : selo(l)}</td>
+      <td>${faixa({ janela: l.janela, marca: r.t, classe: "baixa", meses: i === 0 })}${ondeVale(l)}</td></tr>`).join("")}
+  </table></div>
+  <p class="nota">Risco de até 20%. A faixa mostra a janela mais larga da cultura, juntando todos os solos e ciclos; para um solo e um ciclo específicos, use a aba <a href="#janela">Janela de plantio</a>.</p>`);
 
 /* ---------- Janela de plantio ---------- */
+/* Solo e ciclo dependem da cidade e da cultura: a lista vem do ZARC. */
+let opcoesDe = "", solosJanela = [];
+function encheCiclos() {
+  const form = $("#janela form");
+  const solo = solosJanela.find(s => s.solo === form.solo.value);
+  form.ciclo.innerHTML = (solo ? solo.ciclos : []).map(c => `<option value="${c}">${nomeCiclo(c)}</option>`).join("");
+}
+async function carregaOpcoes() {
+  const form = $("#janela form"), chave = form.codigo.value + ":" + form.cultura.value;
+  if (!form.codigo.value || chave === opcoesDe) return;
+  opcoesDe = chave;
+  const antes = form.solo.value;
+  try {
+    solosJanela = (await pede("/api/opcoes", { codigo: form.codigo.value, cultura: form.cultura.value })).solos;
+    $("#janela .saida").innerHTML = "";
+  } catch (erro) {
+    solosJanela = [];
+    $("#janela .saida").innerHTML = `<p class="erro">${esc(erro.message)}</p>`;
+  }
+  if (chave !== opcoesDe) return;  // a pessoa já trocou de cidade ou cultura
+  form.solo.innerHTML = solosJanela.map(s => `<option value="${s.solo}">${nomeSolo(s.solo)}</option>`).join("");
+  if (solosJanela.some(s => s.solo === antes)) form.solo.value = antes;
+  else if (solosJanela.some(s => s.solo === "AD2")) form.solo.value = "AD2";
+  encheCiclos();
+}
+{
+  const form = $("#janela form");
+  form.codigo.onchange = form.cultura.onchange = carregaOpcoes;
+  form.solo.onchange = encheCiclos;
+}
+
 liga("janela", f => ["/api/janela", f], (r, f) => {
   const data = new Date(f.data + "T12:00").toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" });
   const frase = {
@@ -389,33 +492,99 @@ liga("janela", f => ["/api/janela", f], (r, f) => {
   return `
     <div class="resultado"><div class="planta">${pixels(PLANTA[{ dentro: "soja", antes: "broto", passou: "palhada" }[r.status]], 10)}</div><div>
     <p class="veredito ${r.status === "dentro" ? "dentro" : "fora"}">${r.status === "dentro" ? "Dentro da janela" : "Fora da janela"}</p>
-    <p>${esc(r.cidade)}, ciclo ${NOME_CICLO[r.ciclo].toLowerCase()}: ${data} cai no ${r.nome_decendio}. ${frase}</p></div></div>
+    <p>${esc(r.cidade)} (${r.uf}), ${esc(r.nome_cultura.toLowerCase())}, ciclo ${nomeCiclo(r.ciclo).toLowerCase()}: ${data} cai no ${r.nome_decendio}. ${frase}</p></div></div>
     <div class="rolagem">${faixa({ janela: r.janela, marca: r.t })}</div>
-    <div class="legenda"><span><b style="background:var(--verde-claro)"></b>janela do ZARC</span>
-      <span><b style="box-shadow:0 0 0 2px var(--tinta)"></b>data consultada</span></div>
-    <p class="nota">Janela para solo AD2 e risco de até 20%. Cada quadrado é um decêndio; o ano-safra vai de setembro a agosto.
-      <a href="#documentos" data-pergunta="qual o ISNA mínimo que o ZARC exige para a soja?">Como o ZARC chega nessa janela?</a></p>`;
+    <div class="legenda"><span><b style="background:var(--janela)"></b>janela do ZARC</span>
+      <span><b style="background:var(--janela);box-shadow:0 0 0 2px var(--fundo),0 0 0 4px var(--tinta);margin:0 .55rem 0 4px"></b>data consultada</span></div>
+    <p class="nota">Janela para solo ${esc(nomeSolo(r.solo))} e risco de até 20%${r.portaria ? ` (${esc(r.portaria)})` : ""}. Cada quadrado é um decêndio; o ano-safra vai de setembro a agosto.
+      ${r.cultura === "soja" ? `<a href="#documentos" data-pergunta="qual o ISNA mínimo que o ZARC exige para a soja?">Como o ZARC chega nessa janela?</a>` : ""}</p>`;
 });
 
+/* ---------- Cultura, solo e ciclo de várias cidades (Comparar e Análise financeira) ---------- */
+/* A lista de solos e ciclos vem do ZARC e junta o que existe nas cidades escolhidas.
+   Recarrega quando a cultura ou as cidades mudam; aoMudar roda a cada troca de cultura ou solo. */
+function ligaOpcoes(id, aoMudar = () => {}) {
+  const form = $(`#${id} form`), saida = $(`#${id} .saida`);
+  let solos = [], pedido = "";
+  const ciclosDoSolo = () => (solos.find(s => s.solo === form.solo.value) || { ciclos: [] }).ciclos;
+  const mudou = trocouCultura => {
+    if (form.ciclo) form.ciclo.innerHTML = ciclosDoSolo().map(c => `<option value="${c}">${nomeCiclo(c)}</option>`).join("");
+    aoMudar(ciclosDoSolo(), trocouCultura);
+  };
+  let culturaAntes = null;
+  async function carrega() {
+    const codigos = marcadas(form), chave = form.cultura.value + ":" + codigos;
+    if (!form.cultura.value || chave === pedido) return;
+    pedido = chave;
+    let novos = [], erro = "";
+    if (codigos.length) try {
+      novos = (await pede("/api/opcoes", { cultura: form.cultura.value, codigos })).solos;
+    } catch (e) { erro = e.message; }
+    if (chave !== pedido) return;  // a pessoa já trocou de cultura ou de cidades
+    solos = novos;
+    saida.innerHTML = erro ? `<p class="erro">${esc(erro)}</p>` : "";
+    const antes = form.solo.value;
+    form.solo.innerHTML = solos.map(s => `<option value="${s.solo}">${nomeSolo(s.solo)}</option>`).join("");
+    if (solos.some(s => s.solo === antes)) form.solo.value = antes;
+    else if (solos.some(s => s.solo === "AD2")) form.solo.value = "AD2";
+    mudou(form.cultura.value !== culturaAntes);
+    culturaAntes = form.cultura.value;
+  }
+  form.cultura.addEventListener("change", carrega);
+  form.addEventListener("cidades", carrega);
+  form.solo.addEventListener("change", () => mudou(false));
+}
+
 /* ---------- Comparar cidades ---------- */
+ligaOpcoes("comparar");
 liga("comparar", (f, form) => ["/api/comparar", { ...f, codigos: marcadas(form) }], r => `
   <div class="rolagem"><table>
     <tr><th>Cidade</th><th>Situação na data</th><th style="width:60%">Janela no ano-safra</th></tr>
     ${r.linhas.map((l, i) => `<tr><td>${esc(l.cidade)}</td><td>${selo(l)}</td>
       <td>${faixa({ janela: l.janela, marca: r.t, classe: "baixa", meses: i === 0 })}</td></tr>`).join("")}
   </table></div>
-  ${lista("Sem zoneamento disponível", r.sem_zarc)}${lista("Sem esse ciclo no ZARC", r.sem_ciclo)}`);
+  ${lista("Sem zoneamento da cultura", r.sem_zarc)}${lista("Sem esse solo ou ciclo no ZARC", r.sem_ciclo)}`);
 
 /* ---------- Análise financeira ---------- */
+// O lucro depende só do ciclo (produtividade, preço e custo são os mesmos em toda cidade):
+// uma linha por ciclo, e dentro dela as cidades juntas pela situação da janela.
+function porCiclo(viaveis) {
+  const ciclos = [];
+  for (const l of viaveis) {
+    let c = ciclos.find(c => c.ciclo === l.ciclo);
+    if (!c) ciclos.push(c = { ...l, situacoes: [] });
+    let s = c.situacoes.find(s => s.status === l.status && s.decendios === l.decendios);
+    if (!s) c.situacoes.push(s = { status: l.status, decendios: l.decendios, cidades: [] });
+    s.cidades.push(l.cidade);
+  }
+  return ciclos;
+}
+// A produtividade é um campo por ciclo que o solo tem. Ao trocar a cultura, custo, preço e
+// produtividade voltam para o exemplo dela; na soja o exemplo muda com o ciclo.
+const PROD_SOJA = { precoce: 58, medio: 62, tardio: 64 };
+const culturaDe = form => inicio.culturas.find(c => c.chave === form.cultura.value);
+ligaOpcoes("financeiro", (ciclos, trocouCultura) => {
+  const form = $("#financeiro form"), c = culturaDe(form);
+  if (trocouCultura) {
+    form.custo_ha.value = c.custo;
+    form.preco_saca.value = c.preco;
+    $("#rotulo-preco").textContent = `Preço da ${c.nome_unidade} (R$)`;
+    $("#rotulo-prod").textContent = `Produtividade esperada (${c.unidade}/ha)`;
+  }
+  const antes = trocouCultura ? {} : Object.fromEntries($$("#prod-ciclos input").map(i => [i.dataset.ciclo, i.value]));
+  $("#prod-ciclos").innerHTML = ciclos.map(k => `<label>${nomeCiclo(k)} <input data-ciclo="${k}" inputmode="decimal"
+    value="${antes[k] ?? (c.chave === "soja" ? PROD_SOJA[k] : c.produtividade)}"></label>`).join("");
+});
 liga("financeiro", (f, form) => ["/api/financeiro", { ...f, codigos: marcadas(form),
-    produtividade: { precoce: f.precoce, medio: f.medio, tardio: f.tardio } }], r => `
+    produtividade: Object.fromEntries($$("#prod-ciclos input").map(i => [i.dataset.ciclo, i.value])) }], (r, f, form) => `
   ${r.viaveis.length ? `<div class="rolagem"><table>
-    <tr><th></th><th>Cidade</th><th>Ciclo</th><th>Situação</th><th class="n">Produtividade</th><th class="n">Receita por ha</th><th class="n">Lucro líquido por ha</th></tr>
-    ${r.viaveis.map((l, i) => `<tr><td class="n">${i + 1}</td><td>${esc(l.cidade)}</td><td>${NOME_CICLO[l.ciclo]}</td><td>${selo(l)}</td>
-      <td class="n">${l.produtividade.toLocaleString("pt-BR")} sc/ha</td><td class="n">${reais(l.lucro_bruto)}</td><td class="n"><strong>${reais(l.lucro_liquido)}</strong></td></tr>`).join("")}
+    <tr><th></th><th>Ciclo</th><th class="n">Produtividade</th><th class="n">Receita por ha</th><th class="n">Lucro líquido por ha</th><th>Cidades</th></tr>
+    ${porCiclo(r.viaveis).map((c, i) => `<tr><td class="n">${i + 1}</td><td>${NOME_CICLO[c.ciclo]}</td>
+      <td class="n">${c.produtividade.toLocaleString("pt-BR")} ${culturaDe(form).unidade}/ha</td><td class="n">${reais(c.lucro_bruto)}</td><td class="n"><strong>${reais(c.lucro_liquido)}</strong></td>
+      <td>${c.situacoes.map(s => `<div>${selo(s)}: ${s.cidades.map(esc).join(", ")}</div>`).join("")}</td></tr>`).join("")}
   </table></div>` : `<p>Nenhuma janela ainda aberta ou por abrir nesta safra para as cidades escolhidas.</p>`}
   ${lista("Janela já fechada nesta safra", r.passadas.map(l => `${l.cidade} (${NOME_CICLO[l.ciclo].toLowerCase()})`))}
-  ${lista("Sem zoneamento disponível", r.sem_zarc)}
+  ${lista("Sem zoneamento nesse solo", r.sem_zarc)}
   <p class="nota">O lucro considera só o custo por hectare e o preço informados. Não entram frete, impostos, financiamento nem risco climático além do que o ZARC já filtra.</p>`);
 
 /* ---------- Otimização ---------- */
@@ -474,7 +643,7 @@ liga("otimizacao", f => ["/api/otimizar", {
     ${r.milho_ilustrativo ? `<p class="aviso">No modo demo, as janelas do milho safrinha são ilustrativas: foram escritas à mão, não vêm da AgroAPI. As da soja são registros reais.</p>` : ""}
     ${talhoes}
     <div class="legenda" style="margin-bottom:1.6rem">
-      <span><b style="background:var(--verde-claro)"></b>janela da soja</span><span><b style="background:var(--verde)"></b>soja plantada (ha)</span>
+      <span><b style="background:var(--janela)"></b>janela da soja</span><span><b style="background:var(--verde)"></b>soja plantada (ha)</span>
       <span><b style="background:var(--milho-claro)"></b>janela do milho</span><span><b style="background:var(--milho)"></b>milho plantado (ha)</span></div>
 
     <h3>Quanto vale afrouxar cada limite</h3>
@@ -579,8 +748,8 @@ async function mostraHistorico() {
       <div class="barras">${Object.entries(r.por_ciclo).map(([c, n]) => barra(NOME_CICLO[c], n)).join("")}
         ${barra("Dentro da janela", r.dentro)}${barra("Fora da janela", r.fora)}</div>
       <div class="rolagem" style="margin-top:1.4rem"><table>
-        <tr><th>Consulta feita em</th><th>Cidade</th><th>Ciclo</th><th>Data do plantio</th><th>Resultado</th></tr>
-        ${r.linhas.map(l => `<tr><td>${esc(l.data_consulta)}</td><td>${esc(l.cidade)}</td><td>${NOME_CICLO[l.ciclo] || esc(l.ciclo)}</td>
+        <tr><th>Consulta feita em</th><th>Cidade</th><th>Cultura</th><th>Solo</th><th>Ciclo</th><th>Data do plantio</th><th>Resultado</th></tr>
+        ${r.linhas.map(l => `<tr><td>${esc(l.data_consulta)}</td><td>${esc(l.cidade)}</td><td>${esc(l.nome_cultura)}</td><td>${esc(nomeSolo(l.solo))}</td><td>${NOME_CICLO[l.ciclo] || esc(l.ciclo)}</td>
           <td>${esc(l.data_plantio.split("-").reverse().join("/"))}</td>
           <td><span class="selo ${l.resultado === "dentro" ? "dentro" : "passou"}">${esc(l.resultado)}</span></td></tr>`).join("")}
       </table></div>`;
@@ -606,6 +775,7 @@ const PLANTA = {
   silo: [".aa.", "aaaa", "awaa", "aaaa", "awaa", "aaaa", "awaa", "aaaa", "aaaa", "aaaa"],
 };
 const ICONE = {
+  tres: ["............", "..l...y...c.", ".lll.yyy.ccc", "..l...y...c.", "..g...g...g.", "..g...g...g.", "..g...g...g.", "..g...g...g.", "tttttttttttt"],
   broto: ["............", "..ll....ll..", ".llll..llll.", ".lllgllglll.", "..llgggglll.", ".....gg.....", ".....gg.....", ".....gg.....", "tttttttttttt"],
   dois: ["........ll..", ".......llll.", ".......llll.", "........gg..", "..l.l..lggl.", "..lgl...gg..", "...g....gg..", "...g....gg..", "tttttttttttt"],
   saca: ["....kkkk....", "...k.kk.k...", "....kkkk....", "..cccccccc..", ".cccccccccc.", ".ccckcckccc.", ".cccccccccc.", ".cccccccccc.", "..cccccccc.."],
@@ -726,16 +896,52 @@ matchMedia("(prefers-color-scheme: dark)").addEventListener("change", cena);
 /* ---------- Abas e início ---------- */
 function mostraAba(evento) {
   const id = location.hash.slice(1);
-  const alvo = $$("main > section").some(s => s.id === id) ? id : "janela";
+  const alvo = $$("main > section").some(s => s.id === id) ? id : "plantar";
   $$("main > section").forEach(s => s.hidden = s.id !== alvo);
   $$("#nav a").forEach(a => a.toggleAttribute("aria-current", a.hash === "#" + alvo));
   if (alvo === "historico") mostraHistorico();
+  if (alvo === "janela") carregaOpcoes();
   $("main").scrollTop = 0;
   // sem # na URL, a página fica na capa; vindo da capa desliza, entre abas troca na hora
   const daCapa = evento && scrollY < $("#app").offsetTop - 5;
   if (id === alvo) $("#app").scrollIntoView({ behavior: daCapa ? "smooth" : "instant" });
 }
 const opcoesCidade = () => inicio.municipios.map(m => `<option value="${m.codigo}">${esc(m.nome)}</option>`).join("");
+function encheCidades() {
+  $$("select.cidade").forEach(s => s.innerHTML = opcoesCidade());
+  $$(".cidades").forEach(div => {
+    div.innerHTML = `<select aria-label="Adicionar cidade"></select><div class="escolhidas"></div>`;
+    const lista = $("select", div), escolhidas = $(".escolhidas", div);
+    // as escolhidas viram botões (clicar tira); a lista só oferece as que faltam, até o limite do servidor
+    const atualiza = () => {
+      div.dispatchEvent(new Event("cidades", { bubbles: true }));  // Comparar e Financeira recarregam solos e ciclos
+      const ja = $$("button", escolhidas).map(b => b.value), cheio = ja.length >= inicio.limite_cidades;
+      lista.innerHTML = `<option value="">${cheio ? `Limite de ${inicio.limite_cidades} cidades` : "Adicionar cidade…"}</option>` +
+        inicio.municipios.filter(m => !ja.includes(String(m.codigo))).map(m => `<option value="${m.codigo}">${esc(m.nome)}</option>`).join("");
+      lista.disabled = cheio;
+    };
+    const poe = m => escolhidas.insertAdjacentHTML("beforeend",
+      `<button type="button" class="leve" value="${m.codigo}" title="Tirar ${esc(m.nome)}">${esc(m.nome)} <span aria-hidden="true">×</span></button>`);
+    inicio.municipios.slice(0, 3).forEach(poe);
+    lista.onchange = () => { poe(inicio.municipios.find(m => m.codigo == lista.value)); atualiza(); };
+    escolhidas.onclick = e => { const b = e.target.closest("button"); if (b) { b.remove(); atualiza(); } };
+    atualiza();
+  });
+  if (!$("#janela").hidden) carregaOpcoes();
+}
+async function trocaEstado() {
+  const uf = $("#uf");
+  uf.disabled = true;
+  try {
+    inicio.municipios = (await pede("/api/municipios", { uf: uf.value })).municipios;
+    inicio.uf = uf.value;
+    encheCidades();
+  } catch (erro) {
+    uf.value = inicio.uf;
+    alert(erro.message);
+  }
+  uf.disabled = false;
+}
 
 (async () => {
   try {
@@ -745,10 +951,17 @@ const opcoesCidade = () => inicio.municipios.map(m => `<option value="${m.codigo
     return;
   }
   $("#demo").hidden = !inicio.demo;
-  $$("select.cidade").forEach(s => s.innerHTML = opcoesCidade());
+  $("#uf").innerHTML = inicio.ufs.map(u => `<option ${u === inicio.uf ? "selected" : ""}>${u}</option>`).join("");
+  $("#uf").onchange = trocaEstado;
+  $("#estado").hidden = inicio.ufs.length < 2;
+  $$("#janela select[name=cultura], select.cultura").forEach(s => s.innerHTML = inicio.culturas.map(c => `<option value="${c.chave}">${esc(c.nome)}</option>`).join(""));
+  $("#economia").innerHTML = `<tr><th>Cultura</th><th>Produtividade por ha</th><th>Preço (R$)</th><th>Custo (R$/ha)</th></tr>` +
+    inicio.culturas.map(c => `<tr><td>${esc(c.nome)}<br><small>${esc(c.nome_unidade)}</small></td>
+      <td><input name="prod_${c.chave}" inputmode="decimal" value="${c.produtividade}" aria-label="Produtividade de ${esc(c.nome)}, em ${c.unidade} por hectare"></td>
+      <td><input name="preco_${c.chave}" inputmode="decimal" value="${c.preco}" aria-label="Preço de ${esc(c.nome)}, por ${esc(c.nome_unidade)}"></td>
+      <td><input name="custo_${c.chave}" inputmode="decimal" value="${c.custo}" aria-label="Custo de ${esc(c.nome)}, por hectare"></td></tr>`).join("");
+  encheCidades();
   $$("select.ciclo").forEach(s => s.innerHTML = inicio.ciclos.map(c => `<option value="${c}">${NOME_CICLO[c]}</option>`).join(""));
-  $$(".cidades").forEach(div => div.innerHTML = inicio.municipios.map((m, i) =>
-    `<label><input type="checkbox" value="${m.codigo}" ${inicio.demo || i < 3 ? "checked" : ""}>${esc(m.nome)}</label>`).join(""));
   const hoje = new Date(); hoje.setMinutes(hoje.getMinutes() - hoje.getTimezoneOffset());
   $$("input[type=date]").forEach(i => i.value = hoje.toISOString().slice(0, 10));
   $$("#plantadeira input").forEach(i => { i.value = String(inicio.plantadeira[i.name]).replace(".", ","); i.oninput = mostraCapacidade; });
