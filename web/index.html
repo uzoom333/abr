@@ -50,6 +50,7 @@ details.eco summary { cursor: pointer; font-size: .9rem; font-weight: 600; width
 #economia td, #economia th { border: 0; padding: .2rem .7rem .2rem 0; }
 #economia input { margin: 0; padding: .3rem .45rem; min-width: 6rem; }
 #economia small { color: var(--apagado); white-space: nowrap; }
+#economia td:last-child small { display: block; white-space: normal; min-width: 15rem; margin-top: .15rem; }
 .saida h3 { font-size: 1.05rem; margin: 1.8rem 0 .4rem; }
 nav { display: flex; flex-direction: column; gap: 3px; }
 nav a { display: flex; align-items: center; gap: .65rem; color: var(--tinta); text-decoration: none; padding: .4rem .45rem; font-size: .95rem; border-left: 3px solid transparent; }
@@ -226,8 +227,7 @@ details.trechos summary { cursor: pointer; color: var(--apagado); width: fit-con
       <summary>Produtividade, preço, custo e quebra em ano ruim</summary>
       <div class="rolagem"><table id="economia"></table></div>
       <p class="dica" id="dica-plantar"></p>
-      <div class="campos" style="margin-top:.8rem"><label>Quebra da produção em ano ruim (%) <input name="quebra" inputmode="decimal" required></label></div>
-      <p class="dica">O ZARC dá a chance de haver perda (o risco), não o tamanho dela. O tamanho é hipótese sua.</p>
+      <p class="dica">A quebra é quanto a produção cai num ano ruim. O ZARC dá a chance de haver perda (o risco), não o tamanho dela; o valor preenchido vem da série de produtividade do IBGE na cidade: a queda média nos 20% piores anos, cada ano comparado com os cinco anteriores. É a média do município, que esconde a perda de cada fazenda. Cidade sem série usa a do estado.</p>
     </details>
     <button class="acao">Ver culturas</button>
   </form>
@@ -414,7 +414,7 @@ function liga(id, monta, mostra) {
     botao.disabled = true;
     try {
       const f = Object.fromEntries(new FormData(form));
-      const [rota, dados] = monta(f, form);
+      const [rota, dados] = await monta(f, form);
       saida.innerHTML = mostra(await pede(rota, dados), f, form);
     } catch (erro) {
       saida.innerHTML = `<p class="erro">${esc(erro.message)}</p>`;
@@ -435,7 +435,7 @@ const situacaoDaLinha = l => l.status === "sem_zarc" ? `<span class="selo">sem z
   selo(l) + (l.status === "dentro" ? `<br><span class="selo ${{ 20: "dentro", 30: "antes", 40: "passou" }[l.risco]}">risco de até ${l.risco}%</span>` : "");
 function economiaDoForm(f) {
   const economia = {};
-  inicio.culturas.forEach(c => economia[c.chave] = { produtividade: f["prod_" + c.chave], preco: f["preco_" + c.chave], custo: f["custo_" + c.chave] });
+  inicio.culturas.forEach(c => economia[c.chave] = { produtividade: f["prod_" + c.chave], preco: f["preco_" + c.chave], custo: f["custo_" + c.chave], quebra: f["quebra_" + c.chave] });
   return economia;
 }
 /* A fazenda (estado, cidade, área, solos, quebra) fica guardada no navegador e volta preenchida. */
@@ -445,25 +445,46 @@ function fazendaGuardada() {
 }
 function guardaFazenda(f) {
   try {
-    localStorage.setItem(FAZENDA, JSON.stringify({ uf: inicio.uf, codigo: f.codigo, area: f.area, solo_ad: f.solo_ad, textura: f.textura, quebra: f.quebra }));
+    localStorage.setItem(FAZENDA, JSON.stringify({ uf: inicio.uf, codigo: f.codigo, area: f.area, solo_ad: f.solo_ad, textura: f.textura }));
   } catch {}
 }
 const ranking = r => !r.ranking.length ? "" : `
   <h3>Qual compensa mais, entre as que estão dentro da janela</h3>
   <div class="rolagem"><table>
-    <tr><th></th><th>Cultura</th><th class="n">Risco na data</th><th class="n">Lucro por ha, ano normal</th><th class="n">Lucro por ha, ano ruim</th><th class="n">Lucro esperado por ha</th>${r.area ? `<th class="n">Esperado em ${ha(r.area)} ha</th>` : ""}</tr>
-    ${r.ranking.map((l, i) => `<tr><td class="n">${i + 1}</td><td>${esc(l.nome)}</td><td class="n">até ${l.risco}%</td>
+    <tr><th></th><th>Cultura</th><th class="n">Risco na data</th><th class="n">Quebra em ano ruim</th><th class="n">Lucro por ha, ano normal</th><th class="n">Lucro por ha, ano ruim</th><th class="n">Lucro esperado por ha</th>${r.area ? `<th class="n">Esperado em ${ha(r.area)} ha</th>` : ""}</tr>
+    ${r.ranking.map((l, i) => `<tr><td class="n">${i + 1}</td><td>${esc(l.nome)}</td><td class="n">até ${l.risco}%</td><td class="n">${l.quebra.toLocaleString("pt-BR")}%</td>
       <td class="n">${reais(l.normal)}</td><td class="n">${reais(l.ruim)}</td>
       <td class="n"><strong>${reais(l.esperado)}</strong></td>${r.area ? `<td class="n">${reais(l.total)}</td>` : ""}</tr>`).join("")}
   </table></div>
-  <p class="nota">Ano ruim é ${r.quebra.toLocaleString("pt-BR")}% a menos de produção, com o custo inteiro; essa quebra é hipótese, não é do ZARC. O lucro esperado é a média dos dois anos, pesada pelo risco do ZARC na data. Para trocar a quebra, a produtividade, o preço ou o custo, abra "Produtividade, preço, custo e quebra em ano ruim" no formulário. Não entram frete, impostos, financiamento nem arrendamento. Cana e café são culturas de vários anos: o valor é de um ano de lavoura já formada, não do ano do plantio.</p>
+  <p class="nota">No ano ruim a produção cai o tanto da quebra, com o custo inteiro. O risco vem do ZARC; a quebra vem do IBGE (a queda média da produtividade da cidade nos piores anos) e não é do ZARC. O lucro esperado é a média dos dois anos, pesada pelo risco na data. Para trocar a quebra, a produtividade, o preço ou o custo, abra "Produtividade, preço, custo e quebra em ano ruim" no formulário. Não entram frete, impostos, financiamento nem arrendamento. Cana e café são culturas de vários anos: o valor é de um ano de lavoura já formada, não do ano do plantio.</p>
   <h3>Janela e risco de cada cultura</h3>`;
 const melhor = r => {
   if (!r.ranking.length) return "";
   const m = r.ranking[0];
   return ` ${esc(m.nome)} deixa o maior lucro esperado: ${reais(m.esperado)} por hectare${r.area ? `, ${reais(m.total)} em ${ha(r.area)} ha` : ""}, com risco de até ${m.risco}%.`;
 };
-liga("plantar", f => { guardaFazenda(f); return ["/api/plantar", { codigo: f.codigo, data: f.data, area: f.area, solo_ad: f.solo_ad, textura: f.textura, quebra: f.quebra, economia: economiaDoForm(f) }]; }, (r, f) => `
+/* A quebra de cada cultura depende da cidade: vem do IBGE a cada troca de cidade. */
+let quebrasDe = "", quebrasProntas = Promise.resolve();
+function carregaQuebras() {
+  const form = $("#plantar form"), codigo = form.codigo.value;
+  if (!codigo || codigo === quebrasDe) return quebrasProntas;
+  quebrasDe = codigo;
+  return quebrasProntas = pede("/api/quebras", { codigo }).then(r => {
+    if (codigo !== quebrasDe) return;  // a pessoa já trocou de cidade
+    for (const [cultura, q] of Object.entries(r.quebras)) {
+      const campo = form["quebra_" + cultura];
+      if (!campo) continue;
+      campo.value = num(q.valor);
+      $("small", campo.closest("td")).textContent = q.fonte;
+    }
+  }).catch(() => {});  // sem o IBGE, ficam os valores que já estão nos campos
+}
+liga("plantar", async (_, form) => {
+  await carregaQuebras();  // se a cidade acabou de mudar, espera a quebra dela
+  const f = Object.fromEntries(new FormData(form));
+  guardaFazenda(f);
+  return ["/api/plantar", { codigo: f.codigo, data: f.data, area: f.area, solo_ad: f.solo_ad, textura: f.textura, economia: economiaDoForm(f) }];
+}, (r, f) => `
   <div class="resultado"><div class="planta">${pixels(PLANTA[r.dentro ? "soja" : "broto"], 10)}</div><div>
   <p class="veredito ${r.dentro ? "dentro" : "fora"}">${r.dentro ? plural(r.dentro, "cultura dentro da janela", "culturas dentro da janela") : "Nenhuma cultura dentro da janela"}</p>
   <p>${esc(r.cidade)} (${r.uf}), ${dataPorExtenso(f.data)}, que cai no ${r.nome_decendio}.${melhor(r)}</p></div></div>
@@ -506,6 +527,7 @@ async function carregaOpcoes() {
   else if (solosJanela.some(s => s.solo === "AD2")) form.solo.value = "AD2";
   encheCiclos();
 }
+$("#plantar form").codigo.addEventListener("change", carregaQuebras);
 {
   const form = $("#janela form");
   form.codigo.onchange = form.cultura.onchange = carregaOpcoes;
@@ -946,12 +968,14 @@ const prodCiclo = (c, ciclo) => c.chave === "soja" && CICLO_SOJA[ciclo] ? Math.r
 const fonteDe = c => `produtividade: ${c.fonte.produtividade}; preço: ${c.fonte.preco}; custo: ${c.fonte.custo}`;
 const baixados = () => inicio.valores_em ? `, baixados em ${inicio.valores_em}` : "";
 function encheValores() {
-  $("#economia").innerHTML = `<tr><th>Cultura</th><th>Produtividade por ha</th><th>Preço (R$)</th><th>Custo (R$/ha)</th><th>De onde vem (Conab)</th></tr>` +
+  $("#economia").innerHTML = `<tr><th>Cultura</th><th>Produtividade por ha</th><th>Preço (R$)</th><th>Custo (R$/ha)</th><th>De onde vem (Conab)</th><th>Quebra em ano ruim (%)</th></tr>` +
     inicio.culturas.map(c => `<tr><td>${esc(c.nome)}<br><small>${esc(c.nome_unidade)}</small></td>
       <td><input name="prod_${c.chave}" inputmode="decimal" value="${num(c.produtividade)}" aria-label="Produtividade de ${esc(c.nome)}, em ${c.unidade} por hectare"></td>
       <td><input name="preco_${c.chave}" inputmode="decimal" value="${num(c.preco)}" aria-label="Preço de ${esc(c.nome)}, por ${esc(c.nome_unidade)}"></td>
       <td><input name="custo_${c.chave}" inputmode="decimal" value="${num(c.custo)}" aria-label="Custo de ${esc(c.nome)}, por hectare"></td>
-      <td><small>${esc(fonteDe(c))}</small></td></tr>`).join("");
+      <td><small>${esc(fonteDe(c))}</small></td>
+      <td><input name="quebra_${c.chave}" inputmode="decimal" value="${num(inicio.quebra_padrao)}" aria-label="Quebra de ${esc(c.nome)} em ano ruim, em porcentagem"><small>hipótese, sem fonte</small></td></tr>`).join("");
+  quebrasDe = "";  // a tabela foi refeita: busca a quebra da cidade de novo
   $("#dica-plantar").textContent = `Valores da Conab para ${inicio.uf}${baixados()}. Onde a Conab não levanta o dado no estado, vale o do Brasil ou a média dos estados que têm. Troque pelos seus.`;
 
   const soja = inicio.culturas.find(c => c.chave === "soja"), milho = inicio.culturas.find(c => c.chave === "milho2");
@@ -988,6 +1012,7 @@ function encheCidades() {
     atualiza();
   });
   if (!$("#janela").hidden) carregaOpcoes();
+  carregaQuebras();
 }
 async function trocaEstado() {
   const uf = $("#uf");
@@ -1028,7 +1053,6 @@ async function trocaEstado() {
     form.solo_ad.value = guardada.solo_ad || "";
     form.textura.value = guardada.textura || "";
     form.area.value = guardada.area || "";
-    form.quebra.value = guardada.quebra || num(inicio.quebra);
     if (guardada.uf && guardada.uf !== inicio.uf && inicio.ufs.includes(guardada.uf)) {
       $("#uf").value = guardada.uf;
       await trocaEstado();  // já enche as cidades do estado da fazenda

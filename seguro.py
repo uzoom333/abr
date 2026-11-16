@@ -8,6 +8,7 @@ from datetime import date
 
 import api
 import valores
+from quebra import QUEBRA_PADRAO, quebras_do_municipio
 from zarc import nome_decendio, qual_decendio, situacao_na_janela
 
 ORDEM_STATUS = {"dentro": 0, "antes": 1, "passou": 2, "sem_solo": 3, "sem_zarc": 4}
@@ -41,9 +42,9 @@ def economia_do_estado(uf):
     return valores.economia(uf, ECONOMIA_EXEMPLO)
 
 
-# Quanto da produção se perde num ano ruim, em %. É HIPÓTESE do ABR, que quem usa troca: o ZARC
-# diz a chance de haver perda (o nível de risco), não o tamanho dela.
-QUEBRA_PADRAO = 50
+# Quanto da produção se perde num ano ruim (a quebra, em %): o ZARC diz a chance de haver perda
+# (o nível de risco), não o tamanho dela. O valor que já vem preenchido sai da série de
+# produtividade do IBGE no município (quebra.py); quem usa troca.
 
 
 def lucro_com_risco(valores, risco, quebra=QUEBRA_PADRAO):
@@ -60,20 +61,22 @@ def lucro_com_risco(valores, risco, quebra=QUEBRA_PADRAO):
             "esperado": (1 - chance) * normal + chance * ruim}
 
 
-def ranking_com_risco(linhas, economia, quebra=QUEBRA_PADRAO, area=None):
+def ranking_com_risco(linhas, economia, area=None):
     """Entre as culturas dentro da janela, qual dá mais lucro esperado por hectare.
 
-    linhas: o que culturas_na_data devolve. economia: {cultura: {produtividade, preco, custo}}.
+    linhas: o que culturas_na_data devolve.
+    economia: {cultura: {produtividade, preco, custo, quebra}}; sem quebra, vale QUEBRA_PADRAO.
     area: hectares da fazenda; com ela vem também o lucro esperado da área toda."""
     ranking = []
     for linha in linhas:
         valores = economia.get(linha["cultura"])
         if linha["status"] != "dentro" or valores is None:
             continue
+        quebra = valores.get("quebra", QUEBRA_PADRAO)
         r = {"cultura": linha["cultura"], "nome": linha["nome"], "risco": linha["risco"],
              "unidade": ECONOMIA_EXEMPLO[linha["cultura"]]["unidade"],
              "produtividade": valores["produtividade"], "preco": valores["preco"], "custo": valores["custo"],
-             **lucro_com_risco(valores, linha["risco"], quebra)}
+             "quebra": quebra, **lucro_com_risco(valores, linha["risco"], quebra)}
         r["total"] = r["esperado"] * area if area else None
         ranking.append(r)
     ranking.sort(key=lambda r: -r["esperado"])
@@ -208,26 +211,29 @@ def pede_area():
         print("Digite um número maior que zero.")
 
 
-def pede_quebra():
+def pede_quebra(exemplo):
+    """Quebra da produção num ano ruim, de 0 a 100; Enter fica com o valor de exemplo."""
     while True:
-        texto = input(f"Quebra da produção num ano ruim, em % [{QUEBRA_PADRAO}]: ").strip().replace(",", ".")
+        texto = input(f"  Quebra da produção num ano ruim (%) [{exemplo}]: ").strip().replace(",", ".")
         if not texto:
-            return QUEBRA_PADRAO
+            return float(exemplo)
         try:
             if 0 <= float(texto) <= 100:
                 return float(texto)
         except ValueError:
             pass
-        print("Digite um número de 0 a 100.")
+        print("  Digite um número de 0 a 100.")
 
 
-def compara_lucro(linhas, uf, area=None):
-    """Pergunta produtividade, preço e custo das culturas dentro da janela e mostra do maior
-    lucro esperado para o menor, com o risco de cada uma."""
+def compara_lucro(linhas, codigo, area=None):
+    """Pergunta produtividade, preço, custo e quebra das culturas dentro da janela e mostra do
+    maior lucro esperado para o menor, com o risco de cada uma."""
     dentro = [l for l in linhas if l["status"] == "dentro"]
     print("Informe os valores de cada cultura (Enter fica com o valor entre colchetes).")
-    print("Os valores entre colchetes são da Conab; a fonte de cada um aparece ao lado da cultura.")
-    do_estado = economia_do_estado(uf)
+    print("Produtividade, preço e custo entre colchetes são da Conab; a quebra em ano ruim é do IBGE.")
+    print("A fonte de cada um aparece ao lado da cultura.")
+    do_estado = economia_do_estado(api.uf_do_codigo(codigo))
+    quebras = quebras_do_municipio(codigo)
     economia = {}
     for linha in dentro:
         exemplo = do_estado[linha["cultura"]]
@@ -240,19 +246,19 @@ def compara_lucro(linhas, uf, area=None):
             "preco": pede_com_exemplo(f"Preço (R$/{unidade})", exemplo["preco"]),
             "custo": pede_com_exemplo("Custo de produção (R$/ha)", exemplo["custo"]),
         }
-    print()
-    print("O ZARC dá a chance de perda (o risco), não o tamanho dela. O tamanho é hipótese sua:")
-    quebra = pede_quebra()
+        print(f"  Quebra -> {quebras[linha['cultura']]['fonte']}")
+        economia[linha["cultura"]]["quebra"] = pede_quebra(quebras[linha["cultura"]]["valor"])
 
     print()
     print("LUCRO POR HECTARE, só entre as culturas dentro da janela, do maior lucro esperado para o menor")
-    for i, r in enumerate(ranking_com_risco(linhas, economia, quebra, area), start=1):
-        print(f"{i}. {r['nome']} (risco de até {r['risco']}%): esperado {reais(r['esperado'])}")
+    for i, r in enumerate(ranking_com_risco(linhas, economia, area), start=1):
+        print(f"{i}. {r['nome']} (risco de até {r['risco']}%, quebra de {r['quebra']:g}%): esperado {reais(r['esperado'])}")
         print(f"     ano normal {reais(r['normal'])} | ano ruim {reais(r['ruim'])}"
               + (f" | esperado em {area:g} ha: {reais(r['total'])}" if area else ""))
     print()
-    print(f"Ano ruim = {quebra:g}% a menos de produção, com o custo inteiro. Lucro esperado = a média dos")
-    print("dois anos, pesada pelo risco do ZARC na data. Não entram frete, impostos, financiamento nem")
+    print("Ano ruim = a produção cai o tanto da quebra, com o custo inteiro. Lucro esperado = a média")
+    print("dos dois anos, pesada pelo risco do ZARC na data. A quebra do IBGE é a média do município,")
+    print("que esconde a perda de cada fazenda. Não entram frete, impostos, financiamento nem")
     print("arrendamento. Cana e café são culturas de vários anos: o valor é de um ano de lavoura já")
     print("formada, não do ano do plantio.")
     print()
@@ -301,4 +307,4 @@ def o_que_plantar():
     if any(l["status"] == "dentro" for l in linhas):
         if input("Comparar o lucro por hectare entre as culturas dentro da janela? (s/n) ").strip().lower() == "s":
             print()
-            compara_lucro(linhas, api.uf_do_codigo(codigo), area)
+            compara_lucro(linhas, codigo, area)

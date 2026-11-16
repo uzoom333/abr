@@ -13,3 +13,4 @@ rag/pdfs/
 rag/texto/
 rag/indice/
 cache_municipios_uf.json
+cache_quebra_ibge.json

@@ -36,7 +36,9 @@ ZARC classifies each ten-day period by the probability of yield loss from advers
 
 Profit figures use yield, price and cost typed by the user. The form starts with CONAB values for the selected state (`valores.py` downloads CONAB's open data files and writes `valores_conab.json`): yield from the latest crop survey, price received by the producer in the latest published month, and variable plus fixed cost per hectare. The source of each number is shown next to it. Where CONAB has no figure for the state, the national yield or the average of the states that have one is used, and the source text says so. Coverage is uneven: sugarcane cost, for instance, exists for a single municipality in Alagoas.
 
-"What to plant" combines the two: the risk level on the planting date is read as the chance of a bad year, and expected profit is the average of a normal year and a bad year weighted by that chance. ZARC gives the probability of a loss, not its size, so the yield lost in a bad year (50% by default) **is an assumption typed by the user, not ZARC data**. Since each level is an upper bound, the result is the worst case within the level.
+"What to plant" combines the two: the risk level on the planting date is read as the chance of a bad year, and expected profit is the average of a normal year and a bad year weighted by that chance. Since each level is an upper bound, the result is the worst case within the level.
+
+ZARC gives the probability of a loss, not its size. The share of yield lost in a bad year comes from IBGE's Municipal Agricultural Production survey (SIDRA table 5457, yield per municipality and crop since 1974; `quebra.py`): each year is compared with the average of the five previous years, and the loss is the average drop in the worst 20% of the last 30 years. The form starts with that value for each crop in the chosen municipality and the user can change it. It is a municipal average, which hides losses of individual farms; IBGE does not split first- and second-crop corn, and coffee is arabica and conilon together. Where the municipality has fewer than ten years of data the state series is used, and where the state has none either the value is 50%, **an assumption with no source**; the form says which one was used.
 
 The underlying records come from an external public service and may be unavailable, revised, or incomplete. Always consult the official ZARC publications for decisions with real agricultural consequences.
 
@@ -137,7 +139,8 @@ in `.env` overrides it).
 
 `python teste_otimizacao.py` checks the model against a small instance solvable by hand, and
 `python teste_virada.py` checks windows that cross the turn of the year, and `python teste_risco.py`
-checks the expected-profit arithmetic and the choice of the farm's soil.
+checks the expected-profit arithmetic, the bad-year loss computed from a yield series and the choice
+of the farm's soil.
 
 ### Document search and answers with citations — RAG
 
@@ -227,6 +230,7 @@ abr/
 ├── financeiro.py     # Profit comparison by city and cycle
 ├── seguro.py         # What to plant: one date across all crops, with ZARC risk and expected profit
 ├── valores.py        # Yield, price and cost per crop and state from CONAB open data
+├── quebra.py         # Yield lost in a bad year, per crop and municipality, from IBGE data
 ├── otimizacao.py     # Linear program: soybean + second-crop corn plan
 ├── teste_otimizacao.py # Hand-checkable test of the linear program
 ├── teste_virada.py   # Test of windows that cross the turn of the year

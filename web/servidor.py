@@ -22,6 +22,7 @@ sys.path.insert(0, RAIZ)
 import api
 import historico as arquivo_historico
 import otimizacao
+import quebra as arquivo_quebra
 import seguro
 import valores
 from financeiro import CICLOS
@@ -135,7 +136,7 @@ def inicio(_):
         "municipios": lista_municipios(api.UF_PADRAO),
         "culturas": culturas_do_estado(api.UF_PADRAO),
         "valores_em": valores.atualizado_em(),
-        "quebra": seguro.QUEBRA_PADRAO,
+        "quebra_padrao": seguro.QUEBRA_PADRAO,
         "solos_ad": api.ORDEM_SOLOS[:6],
         "texturas": api.ORDEM_SOLOS[6:],
         "ciclos": CICLOS,
@@ -215,14 +216,19 @@ def le_solo(solo, opcoes):
     return solo
 
 
-def le_quebra(valor):
+def le_quebra(valor, nome):
     try:
         quebra = float(str(valor).replace(",", "."))
     except ValueError:
-        raise Erro("Quebra em ano ruim: digite um número.")
+        raise Erro(f"Quebra de {nome}: digite um número.")
     if not 0 <= quebra <= 100:
-        raise Erro("Quebra em ano ruim: precisa ficar entre 0 e 100.")
+        raise Erro(f"Quebra de {nome}: precisa ficar entre 0 e 100.")
     return quebra
+
+
+def quebras(d):
+    """A quebra em ano ruim de cada cultura na cidade (série do IBGE), para preencher a tela."""
+    return {"quebras": arquivo_quebra.quebras_do_municipio(int(d["codigo"]))}
 
 
 def plantar(d):
@@ -232,13 +238,13 @@ def plantar(d):
     solos = [s for s in (le_solo(d.get("solo_ad"), api.ORDEM_SOLOS[:6]),
                          le_solo(d.get("textura"), api.ORDEM_SOLOS[6:])) if s]
     area = le_positivo(d["area"], "Área") if str(d.get("area") or "").strip() else None
-    quebra = le_quebra(d.get("quebra", seguro.QUEBRA_PADRAO))
     economia = {}
     for cultura, valores in (d.get("economia") or {}).items():
         nome = api.CULTURAS[le_cultura(cultura)]["nome"]
         economia[cultura] = {"produtividade": le_positivo(valores["produtividade"], f"Produtividade de {nome.lower()}"),
                              "preco": le_positivo(valores["preco"], f"Preço de {nome.lower()}"),
-                             "custo": le_positivo(valores["custo"], f"Custo de {nome.lower()}")}
+                             "custo": le_positivo(valores["custo"], f"Custo de {nome.lower()}"),
+                             "quebra": le_quebra(valores.get("quebra", seguro.QUEBRA_PADRAO), nome.lower())}
     situacao = [l for l in seguro.culturas_na_data(codigo, data, solos) if l["cultura"] in culturas_disponiveis()]
     linhas = []
     for linha in situacao:
@@ -253,9 +259,8 @@ def plantar(d):
         "t": para_ano_safra(decendio),
         "linhas": linhas,
         "dentro": sum(1 for l in linhas if l["status"] == "dentro"),
-        "ranking": seguro.ranking_com_risco(situacao, economia, quebra, area),
+        "ranking": seguro.ranking_com_risco(situacao, economia, area),
         "area": area,
-        "quebra": quebra,
         "so_risco_20": api.MODO_DEMO,
     }
 
@@ -495,7 +500,7 @@ def perguntar(d):
 # HTTP
 # ============================================
 
-ROTAS = {"/api/inicio": inicio, "/api/municipios": municipios, "/api/opcoes": opcoes,
+ROTAS = {"/api/inicio": inicio, "/api/municipios": municipios, "/api/opcoes": opcoes, "/api/quebras": quebras,
          "/api/janela": janela, "/api/plantar": plantar, "/api/comparar": comparar,
          "/api/financeiro": financeiro, "/api/otimizar": otimizar, "/api/historico": historico}
 
