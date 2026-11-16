@@ -6,23 +6,21 @@ do Ministério da Agricultura para o Proagro e para o seguro rural com subvenç�
 from datetime import date
 
 import api
+import valores
 from zarc import nome_decendio, qual_decendio, situacao_na_janela
 
 ORDEM_STATUS = {"dentro": 0, "antes": 1, "passou": 2, "sem_zarc": 3}
 
-# Produtividade, preço e custo de cada cultura, só para a tela não começar vazia: o ABR não
-# busca preço nem custo, e a Agritec só estima produtividade de lavoura já plantada. Quem usa
-# troca pelos seus.
+# Produtividade, preço e custo de cada cultura que já vêm preenchidos, para a tela não começar
+# vazia. Quem usa troca pelos seus. Os valores vêm da Conab, por estado (valores.py, que grava
+# valores_conab.json e diz de onde saiu cada número); a Agritec só estima produtividade de
+# lavoura já plantada.
 # unidade: em que a produção é vendida. produtividade em unidade/ha, preco em R$/unidade,
 # custo em R$/ha.
 #
-# PRODUTIVIDADE: média nacional da Conab, arredondada (kg/ha do boletim entre parênteses):
-#   grãos e algodão: Acompanhamento da safra brasileira de grãos, safra 2025/26, 11º levantamento
-#     (ago/2026), tabela 1: soja (3.712), milho 1ª safra (7.191), milho 2ª safra (6.231),
-#     arroz sequeiro (2.549), feijão total (1.170), trigo (2.986), algodão em pluma (2.024).
-#   cana: safra 2026/27, 2º levantamento (ago/2026): 77.905 kg/ha.
-#   café arábica: safra 2026, 3º levantamento (set/2026): 30,8 sc/ha.
-# PREÇO e CUSTO: valores de exemplo, SEM FONTE. Não usar como dado.
+# ECONOMIA_EXEMPLO só vale quando valores_conab.json não existe ou não tem a cultura.
+# Nele a produtividade é a média nacional da Conab (safra 2025/26, 11º levantamento; cana
+# 2026/27, 2º; café 2026, 3º) e PREÇO e CUSTO são exemplos SEM FONTE.
 ECONOMIA_EXEMPLO = {
     "soja":    {"unidade": "sc", "produtividade": 62,  "preco": 125,  "custo": 4500},
     "milho":   {"unidade": "sc", "produtividade": 120, "preco": 60,   "custo": 5000},
@@ -35,6 +33,11 @@ ECONOMIA_EXEMPLO = {
     "cafe":    {"unidade": "sc", "produtividade": 31,  "preco": 1800, "custo": 25000},
 }
 NOME_UNIDADE = {"sc": "saca de 60 kg", "@": "arroba de pluma (15 kg)", "t": "tonelada"}
+
+
+def economia_do_estado(uf):
+    """Os valores que já vêm preenchidos para um estado: da Conab, ou o exemplo onde ela não tem."""
+    return valores.economia(uf, ECONOMIA_EXEMPLO)
 
 
 def ranking_das_seguras(linhas, economia):
@@ -137,16 +140,19 @@ def reais(valor):
     return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
 
-def compara_lucro(linhas):
+def compara_lucro(linhas, uf):
     """Pergunta produtividade, preço e custo das culturas seguras e mostra da mais lucrativa para a menos."""
     seguras = [l for l in linhas if l["status"] == "dentro"]
-    print("Informe os valores de cada cultura (Enter fica com o exemplo entre colchetes).")
-    print("São estimativas suas: o ABR não busca preço de mercado nem custo real.")
+    print("Informe os valores de cada cultura (Enter fica com o valor entre colchetes).")
+    print("Os valores entre colchetes são da Conab; a fonte de cada um aparece ao lado da cultura.")
+    do_estado = economia_do_estado(uf)
     economia = {}
     for linha in seguras:
-        exemplo = ECONOMIA_EXEMPLO[linha["cultura"]]
+        exemplo = do_estado[linha["cultura"]]
         unidade = exemplo["unidade"]
         print(f"\n{linha['nome']} (vendida por {NOME_UNIDADE[unidade]})")
+        fonte = exemplo["fonte"]
+        print(f"  Conab -> produtividade: {fonte['produtividade']}; preço: {fonte['preco']}; custo: {fonte['custo']}")
         economia[linha["cultura"]] = {
             "produtividade": pede_com_exemplo(f"Produtividade ({unidade}/ha)", exemplo["produtividade"]),
             "preco": pede_com_exemplo(f"Preço (R$/{unidade})", exemplo["preco"]),
@@ -198,4 +204,4 @@ def o_que_plantar():
     if any(l["status"] == "dentro" for l in linhas):
         if input("Comparar o lucro por hectare entre as culturas seguras? (s/n) ").strip().lower() == "s":
             print()
-            compara_lucro(linhas)
+            compara_lucro(linhas, api.uf_do_codigo(codigo))

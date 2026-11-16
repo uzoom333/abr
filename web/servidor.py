@@ -23,6 +23,7 @@ import api
 import historico as arquivo_historico
 import otimizacao
 import seguro
+import valores
 from financeiro import CICLOS
 from historico import salvar_consulta
 from zarc import nome_decendio, para_ano_safra, para_calendario, qual_decendio, situacao_na_janela
@@ -117,6 +118,14 @@ def janela_em_safra(janela):
 # TELAS
 # ============================================
 
+def culturas_do_estado(uf):
+    """As culturas com os valores que já vêm preenchidos nesse estado (Conab) e a fonte de cada um."""
+    economia = seguro.economia_do_estado(uf)
+    return [{"chave": c, "nome": api.CULTURAS[c]["nome"], **economia[c],
+             "nome_unidade": seguro.NOME_UNIDADE[economia[c]["unidade"]]}
+            for c in culturas_disponiveis()]
+
+
 def inicio(_):
     return {
         "demo": api.MODO_DEMO,
@@ -124,9 +133,8 @@ def inicio(_):
         "ufs": api.ufs_disponiveis(),
         "uf": api.UF_PADRAO,
         "municipios": lista_municipios(api.UF_PADRAO),
-        "culturas": [{"chave": c, "nome": api.CULTURAS[c]["nome"], **seguro.ECONOMIA_EXEMPLO[c],
-                      "nome_unidade": seguro.NOME_UNIDADE[seguro.ECONOMIA_EXEMPLO[c]["unidade"]]}
-                     for c in culturas_disponiveis()],
+        "culturas": culturas_do_estado(api.UF_PADRAO),
+        "valores_em": valores.atualizado_em(),
         "ciclos": CICLOS,
         "plantadeira": otimizacao.PLANTADEIRA_PADRAO,
         "hipoteses": {
@@ -139,8 +147,9 @@ def inicio(_):
 
 
 def municipios(d):
-    """Os municípios de um estado, para encher as listas de cidade."""
-    return {"municipios": lista_municipios(le_uf(d["uf"]))}
+    """Os municípios de um estado, para encher as listas de cidade, e os valores da Conab nele."""
+    uf = le_uf(d["uf"])
+    return {"municipios": lista_municipios(uf), "culturas": culturas_do_estado(uf)}
 
 
 def opcoes(d):
@@ -533,6 +542,8 @@ class Pedido(BaseHTTPRequestHandler):
 
 def main():
     api.aviso_modo_demo()
+    # valores da Conab: baixa de novo se passaram da validade, sem segurar a abertura da página
+    threading.Thread(target=valores.atualiza_se_velho, daemon=True).start()
     servidor = ThreadingHTTPServer(("127.0.0.1", PORTA), Pedido)
     print(f"ABR aberto em http://localhost:{PORTA}  (Ctrl+C para fechar)")
     try:

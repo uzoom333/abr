@@ -1,0 +1,1567 @@
+{
+ "baixado_em": "2026-11-16",
+ "culturas": {
+  "algodao": {
+   "custo": {
+    "BA": {
+     "fonte": "Barreiras-BA, mar/2026",
+     "valor": 16225
+    },
+    "BR": {
+     "fonte": "média de BA e MT, mar/2026",
+     "valor": 15782
+    },
+    "MT": {
+     "fonte": "Campo Novo Do Parecis-MT, mar/2026",
+     "valor": 15340
+    }
+   },
+   "preco": {
+    "BA": {
+     "fonte": "BA, out/2026",
+     "valor": 133.5
+    },
+    "BR": {
+     "fonte": "média de BA, GO, MA, MG, MS, MT, PI, SP e TO, out/2026",
+     "valor": 136.07
+    },
+    "GO": {
+     "fonte": "GO, out/2026",
+     "valor": 137.1
+    },
+    "MA": {
+     "fonte": "MA, out/2026",
+     "valor": 135.9
+    },
+    "MG": {
+     "fonte": "MG, out/2026",
+     "valor": 135.6
+    },
+    "MS": {
+     "fonte": "MS, out/2026",
+     "valor": 137.55
+    },
+    "MT": {
+     "fonte": "MT, out/2026",
+     "valor": 128.1
+    },
+    "PI": {
+     "fonte": "PI, out/2026",
+     "valor": 140.25
+    },
+    "SP": {
+     "fonte": "SP, out/2026",
+     "valor": 136.05
+    },
+    "TO": {
+     "fonte": "TO, out/2026",
+     "valor": 140.55
+    }
+   },
+   "produtividade": {
+    "BA": {
+     "fonte": "BA, safra 2025/26, 12º levantamento",
+     "valor": 146.1
+    },
+    "BR": {
+     "fonte": "Brasil, safra 2025/26, 12º levantamento",
+     "valor": 136.9
+    },
+    "CE": {
+     "fonte": "CE, safra 2025/26, 12º levantamento",
+     "valor": 35.0
+    },
+    "GO": {
+     "fonte": "GO, safra 2025/26, 12º levantamento",
+     "valor": 134.5
+    },
+    "MA": {
+     "fonte": "MA, safra 2025/26, 12º levantamento",
+     "valor": 131.2
+    },
+    "MG": {
+     "fonte": "MG, safra 2025/26, 12º levantamento",
+     "valor": 136.0
+    },
+    "MS": {
+     "fonte": "MS, safra 2025/26, 12º levantamento",
+     "valor": 141.3
+    },
+    "MT": {
+     "fonte": "MT, safra 2025/26, 12º levantamento",
+     "valor": 134.8
+    },
+    "PA": {
+     "fonte": "PA, safra 2025/26, 12º levantamento",
+     "valor": 111.1
+    },
+    "PB": {
+     "fonte": "PB, safra 2025/26, 12º levantamento",
+     "valor": 16.7
+    },
+    "PI": {
+     "fonte": "PI, safra 2025/26, 12º levantamento",
+     "valor": 142.1
+    },
+    "PR": {
+     "fonte": "PR, safra 2025/26, 12º levantamento",
+     "valor": 91.7
+    },
+    "RN": {
+     "fonte": "RN, safra 2025/26, 12º levantamento",
+     "valor": 38.9
+    },
+    "RO": {
+     "fonte": "RO, safra 2025/26, 12º levantamento",
+     "valor": 114.1
+    },
+    "SP": {
+     "fonte": "SP, safra 2025/26, 12º levantamento",
+     "valor": 115.6
+    },
+    "TO": {
+     "fonte": "TO, safra 2025/26, 12º levantamento",
+     "valor": 119.0
+    }
+   },
+   "unidade": "@"
+  },
+  "arroz": {
+   "custo": {
+    "BR": {
+     "fonte": "média de MA, MT, RS e TO, mar/2026",
+     "valor": 9045
+    },
+    "MA": {
+     "fonte": "São Mateus Do Maranhão-MA, mar/2026",
+     "valor": 7266
+    },
+    "MT": {
+     "fonte": "Sorriso-MT, mar/2026",
+     "valor": 6138
+    },
+    "RS": {
+     "fonte": "RS (3 municípios), mar/2026",
+     "valor": 12985
+    },
+    "TO": {
+     "fonte": "Lagoa Da Confusão-TO, mar/2026",
+     "valor": 9790
+    }
+   },
+   "preco": {
+    "AC": {
+     "fonte": "AC, out/2026",
+     "valor": 180.0
+    },
+    "AL": {
+     "fonte": "AL, out/2026",
+     "valor": 105.0
+    },
+    "BR": {
+     "fonte": "média de AC, AL, CE, GO, MA, MT, PA, PI, PR, RJ, SC, SE e TO, out/2026",
+     "valor": 110.84
+    },
+    "CE": {
+     "fonte": "CE, out/2026",
+     "valor": 88.8
+    },
+    "GO": {
+     "fonte": "GO, out/2026",
+     "valor": 129.6
+    },
+    "MA": {
+     "fonte": "MA, out/2026",
+     "valor": 105.3
+    },
+    "MT": {
+     "fonte": "MT, out/2026",
+     "valor": 110.4
+    },
+    "PA": {
+     "fonte": "PA, out/2026",
+     "valor": 110.4
+    },
+    "PI": {
+     "fonte": "PI, out/2026",
+     "valor": 103.8
+    },
+    "PR": {
+     "fonte": "PR, out/2026",
+     "valor": 109.8
+    },
+    "RJ": {
+     "fonte": "RJ, out/2026",
+     "valor": 84.0
+    },
+    "SC": {
+     "fonte": "SC, out/2026",
+     "valor": 90.6
+    },
+    "SE": {
+     "fonte": "SE, out/2026",
+     "valor": 103.2
+    },
+    "TO": {
+     "fonte": "TO, out/2026",
+     "valor": 120.0
+    }
+   },
+   "produtividade": {
+    "AC": {
+     "fonte": "AC, safra 2025/26, 12º levantamento",
+     "valor": 21.0
+    },
+    "AL": {
+     "fonte": "AL, safra 2025/26, 12º levantamento",
+     "valor": 146.7
+    },
+    "AM": {
+     "fonte": "AM, safra 2025/26, 12º levantamento",
+     "valor": 47.9
+    },
+    "AP": {
+     "fonte": "AP, safra 2025/26, 12º levantamento",
+     "valor": 16.7
+    },
+    "BR": {
+     "fonte": "Brasil, safra 2025/26, 12º levantamento",
+     "valor": 121.7
+    },
+    "CE": {
+     "fonte": "CE, safra 2025/26, 12º levantamento",
+     "valor": 41.0
+    },
+    "DF": {
+     "fonte": "DF, safra 2025/26, 12º levantamento",
+     "valor": 104.2
+    },
+    "ES": {
+     "fonte": "ES, safra 2025/26, 12º levantamento",
+     "valor": 66.7
+    },
+    "GO": {
+     "fonte": "GO, safra 2025/26, 12º levantamento",
+     "valor": 111.8
+    },
+    "MA": {
+     "fonte": "MA, safra 2025/26, 12º levantamento",
+     "valor": 38.2
+    },
+    "MG": {
+     "fonte": "MG, safra 2025/26, 12º levantamento",
+     "valor": 79.8
+    },
+    "MS": {
+     "fonte": "MS, safra 2025/26, 12º levantamento",
+     "valor": 106.9
+    },
+    "MT": {
+     "fonte": "MT, safra 2025/26, 12º levantamento",
+     "valor": 61.2
+    },
+    "PA": {
+     "fonte": "PA, safra 2025/26, 12º levantamento",
+     "valor": 48.8
+    },
+    "PB": {
+     "fonte": "PB, safra 2025/26, 12º levantamento",
+     "valor": 27.1
+    },
+    "PI": {
+     "fonte": "PI, safra 2025/26, 12º levantamento",
+     "valor": 30.8
+    },
+    "PR": {
+     "fonte": "PR, safra 2025/26, 12º levantamento",
+     "valor": 132.0
+    },
+    "RJ": {
+     "fonte": "RJ, safra 2025/26, 12º levantamento",
+     "valor": 50.0
+    },
+    "RN": {
+     "fonte": "RN, safra 2025/26, 12º levantamento",
+     "valor": 44.4
+    },
+    "RO": {
+     "fonte": "RO, safra 2025/26, 12º levantamento",
+     "valor": 61.6
+    },
+    "RR": {
+     "fonte": "RR, safra 2025/26, 12º levantamento",
+     "valor": 124.1
+    },
+    "RS": {
+     "fonte": "RS, safra 2025/26, 12º levantamento",
+     "valor": 144.0
+    },
+    "SC": {
+     "fonte": "SC, safra 2025/26, 12º levantamento",
+     "valor": 138.3
+    },
+    "SE": {
+     "fonte": "SE, safra 2025/26, 12º levantamento",
+     "valor": 138.6
+    },
+    "SP": {
+     "fonte": "SP, safra 2025/26, 12º levantamento",
+     "valor": 114.8
+    },
+    "TO": {
+     "fonte": "TO, safra 2025/26, 12º levantamento",
+     "valor": 98.8
+    }
+   },
+   "unidade": "sc"
+  },
+  "cafe": {
+   "custo": {
+    "BR": {
+     "fonte": "média de GO, MG e PR, mar/2025",
+     "valor": 27968
+    },
+    "GO": {
+     "fonte": "Cristalina-GO, mar/2025",
+     "valor": 30451
+    },
+    "MG": {
+     "fonte": "MG (4 municípios), mar/2025",
+     "valor": 26701
+    },
+    "PR": {
+     "fonte": "Londrina-PR, mar/2025",
+     "valor": 26753
+    },
+    "SP": {
+     "fonte": "Franca-SP, out/2024",
+     "valor": 21404
+    }
+   },
+   "preco": {
+    "BA": {
+     "fonte": "BA, fev/2026",
+     "valor": 1760.4
+    },
+    "BR": {
+     "fonte": "média de BA, CE, DF, ES, GO, MG, PR, RJ e SP, fev/2026",
+     "valor": 1851.63
+    },
+    "CE": {
+     "fonte": "CE, fev/2026",
+     "valor": 2088.6
+    },
+    "DF": {
+     "fonte": "DF, fev/2026",
+     "valor": 1926.0
+    },
+    "ES": {
+     "fonte": "ES, fev/2026",
+     "valor": 1592.1
+    },
+    "GO": {
+     "fonte": "GO, fev/2026",
+     "valor": 1950.0
+    },
+    "MG": {
+     "fonte": "MG, fev/2026",
+     "valor": 1872.6
+    },
+    "PR": {
+     "fonte": "PR, fev/2026",
+     "valor": 1774.2
+    },
+    "RJ": {
+     "fonte": "RJ, fev/2026",
+     "valor": 1806.6
+    },
+    "SP": {
+     "fonte": "SP, fev/2026",
+     "valor": 1894.2
+    }
+   },
+   "produtividade": {
+    "BA": {
+     "fonte": "BA, safra 2026, 3º levantamento",
+     "valor": 21.5
+    },
+    "BR": {
+     "fonte": "Brasil, safra 2026, 3º levantamento",
+     "valor": 30.8
+    },
+    "ES": {
+     "fonte": "ES, safra 2026, 3º levantamento",
+     "valor": 34.3
+    },
+    "GO": {
+     "fonte": "GO, safra 2026, 3º levantamento",
+     "valor": 50.8
+    },
+    "MG": {
+     "fonte": "MG, safra 2026, 3º levantamento",
+     "valor": 30.8
+    },
+    "PR": {
+     "fonte": "PR, safra 2026, 3º levantamento",
+     "valor": 28.8
+    },
+    "RJ": {
+     "fonte": "RJ, safra 2026, 3º levantamento",
+     "valor": 34.0
+    },
+    "SP": {
+     "fonte": "SP, safra 2026, 3º levantamento",
+     "valor": 30.9
+    }
+   },
+   "unidade": "sc"
+  },
+  "cana": {
+   "custo": {
+    "AL": {
+     "fonte": "Coruripe-AL, set/2025",
+     "valor": 8165
+    },
+    "BR": {
+     "fonte": "AL, set/2025",
+     "valor": 8165
+    }
+   },
+   "preco": {
+    "AL": {
+     "fonte": "AL, out/2026",
+     "valor": 140.0
+    },
+    "BA": {
+     "fonte": "BA, out/2026",
+     "valor": 120.0
+    },
+    "BR": {
+     "fonte": "média de AL, BA, CE, ES, MA, MG, PB, PE, PI, RJ, RN, SE e SP, out/2026",
+     "valor": 144.62
+    },
+    "CE": {
+     "fonte": "CE, out/2026",
+     "valor": 280.0
+    },
+    "ES": {
+     "fonte": "ES, out/2026",
+     "valor": 120.0
+    },
+    "MA": {
+     "fonte": "MA, out/2026",
+     "valor": 130.0
+    },
+    "MG": {
+     "fonte": "MG, out/2026",
+     "valor": 120.0
+    },
+    "PB": {
+     "fonte": "PB, out/2026",
+     "valor": 150.0
+    },
+    "PE": {
+     "fonte": "PE, out/2026",
+     "valor": 150.0
+    },
+    "PI": {
+     "fonte": "PI, out/2026",
+     "valor": 150.0
+    },
+    "RJ": {
+     "fonte": "RJ, out/2026",
+     "valor": 110.0
+    },
+    "RN": {
+     "fonte": "RN, out/2026",
+     "valor": 150.0
+    },
+    "SE": {
+     "fonte": "SE, out/2026",
+     "valor": 150.0
+    },
+    "SP": {
+     "fonte": "SP, out/2026",
+     "valor": 110.0
+    }
+   },
+   "produtividade": {
+    "AL": {
+     "fonte": "AL, safra 2026/27, 2º levantamento",
+     "valor": 60.2
+    },
+    "AM": {
+     "fonte": "AM, safra 2026/27, 2º levantamento",
+     "valor": 84.2
+    },
+    "BA": {
+     "fonte": "BA, safra 2026/27, 2º levantamento",
+     "valor": 85.9
+    },
+    "BR": {
+     "fonte": "Brasil, safra 2026/27, 2º levantamento",
+     "valor": 77.9
+    },
+    "ES": {
+     "fonte": "ES, safra 2026/27, 2º levantamento",
+     "valor": 64.1
+    },
+    "GO": {
+     "fonte": "GO, safra 2026/27, 2º levantamento",
+     "valor": 78.0
+    },
+    "MA": {
+     "fonte": "MA, safra 2026/27, 2º levantamento",
+     "valor": 70.0
+    },
+    "MG": {
+     "fonte": "MG, safra 2026/27, 2º levantamento",
+     "valor": 78.1
+    },
+    "MS": {
+     "fonte": "MS, safra 2026/27, 2º levantamento",
+     "valor": 77.2
+    },
+    "MT": {
+     "fonte": "MT, safra 2026/27, 2º levantamento",
+     "valor": 87.6
+    },
+    "PA": {
+     "fonte": "PA, safra 2026/27, 2º levantamento",
+     "valor": 83.7
+    },
+    "PB": {
+     "fonte": "PB, safra 2026/27, 2º levantamento",
+     "valor": 56.0
+    },
+    "PE": {
+     "fonte": "PE, safra 2026/27, 2º levantamento",
+     "valor": 58.0
+    },
+    "PI": {
+     "fonte": "PI, safra 2026/27, 2º levantamento",
+     "valor": 64.3
+    },
+    "PR": {
+     "fonte": "PR, safra 2026/27, 2º levantamento",
+     "valor": 74.4
+    },
+    "RJ": {
+     "fonte": "RJ, safra 2026/27, 2º levantamento",
+     "valor": 56.0
+    },
+    "RN": {
+     "fonte": "RN, safra 2026/27, 2º levantamento",
+     "valor": 45.5
+    },
+    "SE": {
+     "fonte": "SE, safra 2026/27, 2º levantamento",
+     "valor": 53.1
+    },
+    "SP": {
+     "fonte": "SP, safra 2026/27, 2º levantamento",
+     "valor": 82.0
+    },
+    "TO": {
+     "fonte": "TO, safra 2026/27, 2º levantamento",
+     "valor": 73.4
+    }
+   },
+   "unidade": "t"
+  },
+  "feijao": {
+   "custo": {
+    "BR": {
+     "fonte": "média de GO, MG, MT, PR e SP, mar/2026",
+     "valor": 9251
+    },
+    "GO": {
+     "fonte": "Cristalina-GO, mar/2026",
+     "valor": 6490
+    },
+    "MG": {
+     "fonte": "Unaí-MG, mar/2026",
+     "valor": 9548
+    },
+    "MT": {
+     "fonte": "Sorriso-MT, mar/2026",
+     "valor": 11368
+    },
+    "PR": {
+     "fonte": "PR (2 municípios), mar/2026",
+     "valor": 6918
+    },
+    "SP": {
+     "fonte": "Taquarituba-SP, mar/2026",
+     "valor": 11933
+    }
+   },
+   "preco": {
+    "AC": {
+     "fonte": "AC, out/2026",
+     "valor": 742.2
+    },
+    "AL": {
+     "fonte": "AL, mar/2026",
+     "valor": 289.8
+    },
+    "BA": {
+     "fonte": "BA, out/2026",
+     "valor": 316.2
+    },
+    "BR": {
+     "fonte": "média de AC, BA, CE, DF, GO, MG, MS, MT, PR, SC, SE, SP e TO, out/2026",
+     "valor": 356.82
+    },
+    "CE": {
+     "fonte": "CE, out/2026",
+     "valor": 510.0
+    },
+    "DF": {
+     "fonte": "DF, out/2026",
+     "valor": 294.6
+    },
+    "ES": {
+     "fonte": "ES, dez/2025",
+     "valor": 296.4
+    },
+    "GO": {
+     "fonte": "GO, out/2026",
+     "valor": 307.2
+    },
+    "MG": {
+     "fonte": "MG, out/2026",
+     "valor": 307.8
+    },
+    "MS": {
+     "fonte": "MS, out/2026",
+     "valor": 276.6
+    },
+    "MT": {
+     "fonte": "MT, out/2026",
+     "valor": 289.8
+    },
+    "PB": {
+     "fonte": "PB, ago/2026",
+     "valor": 249.6
+    },
+    "PE": {
+     "fonte": "PE, dez/2025",
+     "valor": 222.6
+    },
+    "PR": {
+     "fonte": "PR, out/2026",
+     "valor": 288.0
+    },
+    "RO": {
+     "fonte": "RO, set/2026",
+     "valor": 600.0
+    },
+    "SC": {
+     "fonte": "SC, out/2026",
+     "valor": 268.2
+    },
+    "SE": {
+     "fonte": "SE, out/2026",
+     "valor": 390.0
+    },
+    "SP": {
+     "fonte": "SP, out/2026",
+     "valor": 343.2
+    },
+    "TO": {
+     "fonte": "TO, out/2026",
+     "valor": 304.8
+    }
+   },
+   "produtividade": {
+    "AC": {
+     "fonte": "AC, safra 2025/26, 12º levantamento",
+     "valor": 9.3
+    },
+    "AL": {
+     "fonte": "AL, safra 2025/26, 12º levantamento",
+     "valor": 6.8
+    },
+    "AM": {
+     "fonte": "AM, safra 2025/26, 12º levantamento",
+     "valor": 14.0
+    },
+    "AP": {
+     "fonte": "AP, safra 2025/26, 12º levantamento",
+     "valor": 16.7
+    },
+    "BA": {
+     "fonte": "BA, safra 2025/26, 12º levantamento",
+     "valor": 14.9
+    },
+    "BR": {
+     "fonte": "Brasil, safra 2025/26, 12º levantamento",
+     "valor": 19.4
+    },
+    "CE": {
+     "fonte": "CE, safra 2025/26, 12º levantamento",
+     "valor": 6.1
+    },
+    "DF": {
+     "fonte": "DF, safra 2025/26, 12º levantamento",
+     "valor": 43.3
+    },
+    "ES": {
+     "fonte": "ES, safra 2025/26, 12º levantamento",
+     "valor": 19.0
+    },
+    "GO": {
+     "fonte": "GO, safra 2025/26, 12º levantamento",
+     "valor": 40.6
+    },
+    "MA": {
+     "fonte": "MA, safra 2025/26, 12º levantamento",
+     "valor": 11.0
+    },
+    "MG": {
+     "fonte": "MG, safra 2025/26, 12º levantamento",
+     "valor": 28.8
+    },
+    "MS": {
+     "fonte": "MS, safra 2025/26, 12º levantamento",
+     "valor": 26.9
+    },
+    "MT": {
+     "fonte": "MT, safra 2025/26, 12º levantamento",
+     "valor": 27.8
+    },
+    "PA": {
+     "fonte": "PA, safra 2025/26, 12º levantamento",
+     "valor": 12.6
+    },
+    "PB": {
+     "fonte": "PB, safra 2025/26, 12º levantamento",
+     "valor": 5.7
+    },
+    "PE": {
+     "fonte": "PE, safra 2025/26, 12º levantamento",
+     "valor": 12.4
+    },
+    "PI": {
+     "fonte": "PI, safra 2025/26, 12º levantamento",
+     "valor": 6.1
+    },
+    "PR": {
+     "fonte": "PR, safra 2025/26, 12º levantamento",
+     "valor": 25.9
+    },
+    "RJ": {
+     "fonte": "RJ, safra 2025/26, 12º levantamento",
+     "valor": 19.0
+    },
+    "RN": {
+     "fonte": "RN, safra 2025/26, 12º levantamento",
+     "valor": 5.8
+    },
+    "RO": {
+     "fonte": "RO, safra 2025/26, 12º levantamento",
+     "valor": 16.7
+    },
+    "RR": {
+     "fonte": "RR, safra 2025/26, 12º levantamento",
+     "valor": 20.0
+    },
+    "RS": {
+     "fonte": "RS, safra 2025/26, 12º levantamento",
+     "valor": 25.7
+    },
+    "SC": {
+     "fonte": "SC, safra 2025/26, 12º levantamento",
+     "valor": 30.9
+    },
+    "SE": {
+     "fonte": "SE, safra 2025/26, 12º levantamento",
+     "valor": 8.3
+    },
+    "SP": {
+     "fonte": "SP, safra 2025/26, 12º levantamento",
+     "valor": 39.0
+    },
+    "TO": {
+     "fonte": "TO, safra 2025/26, 12º levantamento",
+     "valor": 18.3
+    }
+   },
+   "unidade": "sc"
+  },
+  "milho": {
+   "custo": {
+    "BA": {
+     "fonte": "Barreiras-BA, mar/2026",
+     "valor": 11520
+    },
+    "BR": {
+     "fonte": "média de BA, PI, PR, RS e SC, mar/2026",
+     "valor": 10539
+    },
+    "PI": {
+     "fonte": "Uruçuí-PI, mar/2026",
+     "valor": 8044
+    },
+    "PR": {
+     "fonte": "Ponta Grossa-PR, mar/2026",
+     "valor": 11788
+    },
+    "RS": {
+     "fonte": "RS (2 municípios), mar/2026",
+     "valor": 9304
+    },
+    "SC": {
+     "fonte": "Campos Novos-SC, mar/2026",
+     "valor": 12039
+    }
+   },
+   "preco": {
+    "AC": {
+     "fonte": "AC, out/2026",
+     "valor": 69.6
+    },
+    "AL": {
+     "fonte": "AL, out/2026",
+     "valor": 79.8
+    },
+    "AP": {
+     "fonte": "AP, out/2026",
+     "valor": 73.2
+    },
+    "BA": {
+     "fonte": "BA, out/2026",
+     "valor": 64.2
+    },
+    "BR": {
+     "fonte": "média de AC, AL, AP, BA, CE, DF, ES, GO, MA, MG, MS, MT, PA, PE, PI, PR, RJ, RN, RO, RR, RS, SC, SE, SP e TO, out/2026",
+     "valor": 66.77
+    },
+    "CE": {
+     "fonte": "CE, out/2026",
+     "valor": 72.0
+    },
+    "DF": {
+     "fonte": "DF, out/2026",
+     "valor": 60.6
+    },
+    "ES": {
+     "fonte": "ES, out/2026",
+     "valor": 84.6
+    },
+    "GO": {
+     "fonte": "GO, out/2026",
+     "valor": 54.6
+    },
+    "MA": {
+     "fonte": "MA, out/2026",
+     "valor": 66.0
+    },
+    "MG": {
+     "fonte": "MG, out/2026",
+     "valor": 63.0
+    },
+    "MS": {
+     "fonte": "MS, out/2026",
+     "valor": 51.6
+    },
+    "MT": {
+     "fonte": "MT, out/2026",
+     "valor": 46.2
+    },
+    "PA": {
+     "fonte": "PA, out/2026",
+     "valor": 60.6
+    },
+    "PE": {
+     "fonte": "PE, out/2026",
+     "valor": 95.4
+    },
+    "PI": {
+     "fonte": "PI, out/2026",
+     "valor": 68.4
+    },
+    "PR": {
+     "fonte": "PR, out/2026",
+     "valor": 52.8
+    },
+    "RJ": {
+     "fonte": "RJ, out/2026",
+     "valor": 84.0
+    },
+    "RN": {
+     "fonte": "RN, out/2026",
+     "valor": 72.0
+    },
+    "RO": {
+     "fonte": "RO, out/2026",
+     "valor": 57.0
+    },
+    "RR": {
+     "fonte": "RR, out/2026",
+     "valor": 82.2
+    },
+    "RS": {
+     "fonte": "RS, out/2026",
+     "valor": 62.4
+    },
+    "SC": {
+     "fonte": "SC, out/2026",
+     "valor": 58.8
+    },
+    "SE": {
+     "fonte": "SE, out/2026",
+     "valor": 73.2
+    },
+    "SP": {
+     "fonte": "SP, out/2026",
+     "valor": 60.6
+    },
+    "TO": {
+     "fonte": "TO, out/2026",
+     "valor": 56.4
+    }
+   },
+   "produtividade": {
+    "AC": {
+     "fonte": "AC, safra 2025/26, 12º levantamento",
+     "valor": 52.4
+    },
+    "AM": {
+     "fonte": "AM, safra 2025/26, 12º levantamento",
+     "valor": 42.9
+    },
+    "BA": {
+     "fonte": "BA, safra 2025/26, 12º levantamento",
+     "valor": 84.0
+    },
+    "BR": {
+     "fonte": "Brasil, safra 2025/26, 12º levantamento",
+     "valor": 119.8
+    },
+    "DF": {
+     "fonte": "DF, safra 2025/26, 12º levantamento",
+     "valor": 156.1
+    },
+    "ES": {
+     "fonte": "ES, safra 2025/26, 12º levantamento",
+     "valor": 54.8
+    },
+    "GO": {
+     "fonte": "GO, safra 2025/26, 12º levantamento",
+     "valor": 173.5
+    },
+    "MA": {
+     "fonte": "MA, safra 2025/26, 12º levantamento",
+     "valor": 94.4
+    },
+    "MG": {
+     "fonte": "MG, safra 2025/26, 12º levantamento",
+     "valor": 118.1
+    },
+    "MS": {
+     "fonte": "MS, safra 2025/26, 12º levantamento",
+     "valor": 183.3
+    },
+    "MT": {
+     "fonte": "MT, safra 2025/26, 12º levantamento",
+     "valor": 140.2
+    },
+    "PA": {
+     "fonte": "PA, safra 2025/26, 12º levantamento",
+     "valor": 56.3
+    },
+    "PI": {
+     "fonte": "PI, safra 2025/26, 12º levantamento",
+     "valor": 88.0
+    },
+    "PR": {
+     "fonte": "PR, safra 2025/26, 12º levantamento",
+     "valor": 188.8
+    },
+    "RJ": {
+     "fonte": "RJ, safra 2025/26, 12º levantamento",
+     "valor": 78.6
+    },
+    "RO": {
+     "fonte": "RO, safra 2025/26, 12º levantamento",
+     "valor": 63.0
+    },
+    "RS": {
+     "fonte": "RS, safra 2025/26, 12º levantamento",
+     "valor": 122.6
+    },
+    "SC": {
+     "fonte": "SC, safra 2025/26, 12º levantamento",
+     "valor": 170.8
+    },
+    "SP": {
+     "fonte": "SP, safra 2025/26, 12º levantamento",
+     "valor": 108.3
+    },
+    "TO": {
+     "fonte": "TO, safra 2025/26, 12º levantamento",
+     "valor": 123.0
+    }
+   },
+   "unidade": "sc"
+  },
+  "milho2": {
+   "custo": {
+    "BR": {
+     "fonte": "média de CE, GO, MA, MG, MS, MT, PR e TO, mar/2026",
+     "valor": 4480
+    },
+    "CE": {
+     "fonte": "Crateús-CE, mar/2026",
+     "valor": 1885
+    },
+    "GO": {
+     "fonte": "Rio Verde-GO, mar/2026",
+     "valor": 5889
+    },
+    "MA": {
+     "fonte": "Balsas-MA, mar/2026",
+     "valor": 3421
+    },
+    "MG": {
+     "fonte": "Unaí-MG, mar/2026",
+     "valor": 5736
+    },
+    "MS": {
+     "fonte": "Dourados-MS, mar/2026",
+     "valor": 3884
+    },
+    "MT": {
+     "fonte": "MT (2 municípios), mar/2026",
+     "valor": 4495
+    },
+    "PR": {
+     "fonte": "PR (2 municípios), mar/2026",
+     "valor": 6270
+    },
+    "TO": {
+     "fonte": "Pedro Afonso-TO, mar/2026",
+     "valor": 4261
+    }
+   },
+   "preco": {
+    "AC": {
+     "fonte": "AC, out/2026",
+     "valor": 69.6
+    },
+    "AL": {
+     "fonte": "AL, out/2026",
+     "valor": 79.8
+    },
+    "AP": {
+     "fonte": "AP, out/2026",
+     "valor": 73.2
+    },
+    "BA": {
+     "fonte": "BA, out/2026",
+     "valor": 64.2
+    },
+    "BR": {
+     "fonte": "média de AC, AL, AP, BA, CE, DF, ES, GO, MA, MG, MS, MT, PA, PE, PI, PR, RJ, RN, RO, RR, RS, SC, SE, SP e TO, out/2026",
+     "valor": 66.77
+    },
+    "CE": {
+     "fonte": "CE, out/2026",
+     "valor": 72.0
+    },
+    "DF": {
+     "fonte": "DF, out/2026",
+     "valor": 60.6
+    },
+    "ES": {
+     "fonte": "ES, out/2026",
+     "valor": 84.6
+    },
+    "GO": {
+     "fonte": "GO, out/2026",
+     "valor": 54.6
+    },
+    "MA": {
+     "fonte": "MA, out/2026",
+     "valor": 66.0
+    },
+    "MG": {
+     "fonte": "MG, out/2026",
+     "valor": 63.0
+    },
+    "MS": {
+     "fonte": "MS, out/2026",
+     "valor": 51.6
+    },
+    "MT": {
+     "fonte": "MT, out/2026",
+     "valor": 46.2
+    },
+    "PA": {
+     "fonte": "PA, out/2026",
+     "valor": 60.6
+    },
+    "PE": {
+     "fonte": "PE, out/2026",
+     "valor": 95.4
+    },
+    "PI": {
+     "fonte": "PI, out/2026",
+     "valor": 68.4
+    },
+    "PR": {
+     "fonte": "PR, out/2026",
+     "valor": 52.8
+    },
+    "RJ": {
+     "fonte": "RJ, out/2026",
+     "valor": 84.0
+    },
+    "RN": {
+     "fonte": "RN, out/2026",
+     "valor": 72.0
+    },
+    "RO": {
+     "fonte": "RO, out/2026",
+     "valor": 57.0
+    },
+    "RR": {
+     "fonte": "RR, out/2026",
+     "valor": 82.2
+    },
+    "RS": {
+     "fonte": "RS, out/2026",
+     "valor": 62.4
+    },
+    "SC": {
+     "fonte": "SC, out/2026",
+     "valor": 58.8
+    },
+    "SE": {
+     "fonte": "SE, out/2026",
+     "valor": 73.2
+    },
+    "SP": {
+     "fonte": "SP, out/2026",
+     "valor": 60.6
+    },
+    "TO": {
+     "fonte": "TO, out/2026",
+     "valor": 56.4
+    }
+   },
+   "produtividade": {
+    "AC": {
+     "fonte": "AC, safra 2025/26, 12º levantamento",
+     "valor": 73.6
+    },
+    "BA": {
+     "fonte": "BA, safra 2025/26, 12º levantamento",
+     "valor": 40.0
+    },
+    "BR": {
+     "fonte": "Brasil, safra 2025/26, 12º levantamento",
+     "valor": 104.8
+    },
+    "CE": {
+     "fonte": "CE, safra 2025/26, 12º levantamento",
+     "valor": 20.9
+    },
+    "DF": {
+     "fonte": "DF, safra 2025/26, 12º levantamento",
+     "valor": 104.2
+    },
+    "ES": {
+     "fonte": "ES, safra 2025/26, 12º levantamento",
+     "valor": 75.6
+    },
+    "GO": {
+     "fonte": "GO, safra 2025/26, 12º levantamento",
+     "valor": 83.8
+    },
+    "MA": {
+     "fonte": "MA, safra 2025/26, 12º levantamento",
+     "valor": 84.7
+    },
+    "MG": {
+     "fonte": "MG, safra 2025/26, 12º levantamento",
+     "valor": 93.8
+    },
+    "MS": {
+     "fonte": "MS, safra 2025/26, 12º levantamento",
+     "valor": 104.6
+    },
+    "MT": {
+     "fonte": "MT, safra 2025/26, 12º levantamento",
+     "valor": 128.0
+    },
+    "PA": {
+     "fonte": "PA, safra 2025/26, 12º levantamento",
+     "valor": 84.8
+    },
+    "PB": {
+     "fonte": "PB, safra 2025/26, 12º levantamento",
+     "valor": 9.1
+    },
+    "PE": {
+     "fonte": "PE, safra 2025/26, 12º levantamento",
+     "valor": 13.1
+    },
+    "PI": {
+     "fonte": "PI, safra 2025/26, 12º levantamento",
+     "valor": 75.8
+    },
+    "PR": {
+     "fonte": "PR, safra 2025/26, 12º levantamento",
+     "valor": 98.7
+    },
+    "RN": {
+     "fonte": "RN, safra 2025/26, 12º levantamento",
+     "valor": 8.6
+    },
+    "RO": {
+     "fonte": "RO, safra 2025/26, 12º levantamento",
+     "valor": 86.3
+    },
+    "SP": {
+     "fonte": "SP, safra 2025/26, 12º levantamento",
+     "valor": 98.3
+    },
+    "TO": {
+     "fonte": "TO, safra 2025/26, 12º levantamento",
+     "valor": 85.2
+    }
+   },
+   "unidade": "sc"
+  },
+  "soja": {
+   "custo": {
+    "BA": {
+     "fonte": "Barreiras-BA, mar/2026",
+     "valor": 5815
+    },
+    "BR": {
+     "fonte": "média de BA, GO, MA, MG, MS, MT, PI, PR, RS e TO, mar/2026",
+     "valor": 5531
+    },
+    "GO": {
+     "fonte": "Rio Verde-GO, mar/2026",
+     "valor": 5152
+    },
+    "MA": {
+     "fonte": "Balsas-MA, mar/2026",
+     "valor": 5489
+    },
+    "MG": {
+     "fonte": "Unaí-MG, mar/2026",
+     "valor": 6247
+    },
+    "MS": {
+     "fonte": "Dourados-MS, mar/2026",
+     "valor": 5981
+    },
+    "MT": {
+     "fonte": "MT (2 municípios), mar/2026",
+     "valor": 5308
+    },
+    "PI": {
+     "fonte": "Uruçuí-PI, mar/2026",
+     "valor": 4986
+    },
+    "PR": {
+     "fonte": "PR (2 municípios), mar/2026",
+     "valor": 5907
+    },
+    "RS": {
+     "fonte": "RS (2 municípios), mar/2026",
+     "valor": 5150
+    },
+    "TO": {
+     "fonte": "Pedro Afonso-TO, mar/2026",
+     "valor": 5277
+    }
+   },
+   "preco": {
+    "AP": {
+     "fonte": "AP, out/2026",
+     "valor": 130.2
+    },
+    "BA": {
+     "fonte": "BA, out/2026",
+     "valor": 142.2
+    },
+    "BR": {
+     "fonte": "média de AP, BA, DF, GO, MA, MG, MS, MT, PA, PI, PR, RO, RS, SC, SP e TO, out/2026",
+     "valor": 137.25
+    },
+    "DF": {
+     "fonte": "DF, out/2026",
+     "valor": 144.0
+    },
+    "GO": {
+     "fonte": "GO, out/2026",
+     "valor": 137.4
+    },
+    "MA": {
+     "fonte": "MA, out/2026",
+     "valor": 141.6
+    },
+    "MG": {
+     "fonte": "MG, out/2026",
+     "valor": 144.6
+    },
+    "MS": {
+     "fonte": "MS, out/2026",
+     "valor": 139.2
+    },
+    "MT": {
+     "fonte": "MT, out/2026",
+     "valor": 137.4
+    },
+    "PA": {
+     "fonte": "PA, out/2026",
+     "valor": 133.8
+    },
+    "PI": {
+     "fonte": "PI, out/2026",
+     "valor": 141.6
+    },
+    "PR": {
+     "fonte": "PR, out/2026",
+     "valor": 136.2
+    },
+    "RO": {
+     "fonte": "RO, out/2026",
+     "valor": 120.6
+    },
+    "RR": {
+     "fonte": "RR, jan/2026",
+     "valor": 155.4
+    },
+    "RS": {
+     "fonte": "RS, out/2026",
+     "valor": 137.4
+    },
+    "SC": {
+     "fonte": "SC, out/2026",
+     "valor": 138.0
+    },
+    "SP": {
+     "fonte": "SP, out/2026",
+     "valor": 139.2
+    },
+    "TO": {
+     "fonte": "TO, out/2026",
+     "valor": 132.6
+    }
+   },
+   "produtividade": {
+    "AC": {
+     "fonte": "AC, safra 2025/26, 12º levantamento",
+     "valor": 64.9
+    },
+    "AL": {
+     "fonte": "AL, safra 2025/26, 12º levantamento",
+     "valor": 60.1
+    },
+    "AM": {
+     "fonte": "AM, safra 2025/26, 12º levantamento",
+     "valor": 53.8
+    },
+    "AP": {
+     "fonte": "AP, safra 2025/26, 12º levantamento",
+     "valor": 44.2
+    },
+    "BA": {
+     "fonte": "BA, safra 2025/26, 12º levantamento",
+     "valor": 71.0
+    },
+    "BR": {
+     "fonte": "Brasil, safra 2025/26, 12º levantamento",
+     "valor": 61.9
+    },
+    "CE": {
+     "fonte": "CE, safra 2025/26, 12º levantamento",
+     "valor": 61.9
+    },
+    "DF": {
+     "fonte": "DF, safra 2025/26, 12º levantamento",
+     "valor": 67.3
+    },
+    "GO": {
+     "fonte": "GO, safra 2025/26, 12º levantamento",
+     "valor": 65.2
+    },
+    "MA": {
+     "fonte": "MA, safra 2025/26, 12º levantamento",
+     "valor": 59.2
+    },
+    "MG": {
+     "fonte": "MG, safra 2025/26, 12º levantamento",
+     "valor": 65.2
+    },
+    "MS": {
+     "fonte": "MS, safra 2025/26, 12º levantamento",
+     "valor": 60.0
+    },
+    "MT": {
+     "fonte": "MT, safra 2025/26, 12º levantamento",
+     "valor": 66.1
+    },
+    "PA": {
+     "fonte": "PA, safra 2025/26, 12º levantamento",
+     "valor": 63.1
+    },
+    "PE": {
+     "fonte": "PE, safra 2025/26, 12º levantamento",
+     "valor": 50.0
+    },
+    "PI": {
+     "fonte": "PI, safra 2025/26, 12º levantamento",
+     "valor": 66.1
+    },
+    "PR": {
+     "fonte": "PR, safra 2025/26, 12º levantamento",
+     "valor": 63.0
+    },
+    "RO": {
+     "fonte": "RO, safra 2025/26, 12º levantamento",
+     "valor": 65.4
+    },
+    "RR": {
+     "fonte": "RR, safra 2025/26, 12º levantamento",
+     "valor": 49.3
+    },
+    "RS": {
+     "fonte": "RS, safra 2025/26, 12º levantamento",
+     "valor": 46.2
+    },
+    "SC": {
+     "fonte": "SC, safra 2025/26, 12º levantamento",
+     "valor": 64.2
+    },
+    "SP": {
+     "fonte": "SP, safra 2025/26, 12º levantamento",
+     "valor": 64.1
+    },
+    "TO": {
+     "fonte": "TO, safra 2025/26, 12º levantamento",
+     "valor": 60.7
+    }
+   },
+   "unidade": "sc"
+  },
+  "trigo": {
+   "custo": {
+    "BR": {
+     "fonte": "média de DF, MG, MS, PR, RS e SP, nov/2025",
+     "valor": 6791
+    },
+    "DF": {
+     "fonte": "Brasília-DF, nov/2025",
+     "valor": 12678
+    },
+    "MG": {
+     "fonte": "São Gotardo-MG, nov/2025",
+     "valor": 8855
+    },
+    "MS": {
+     "fonte": "Laguna Carapã-MS, nov/2025",
+     "valor": 3676
+    },
+    "PR": {
+     "fonte": "PR (3 municípios), nov/2025",
+     "valor": 5243
+    },
+    "RS": {
+     "fonte": "RS (3 municípios), nov/2025",
+     "valor": 5548
+    },
+    "SP": {
+     "fonte": "Itapeva-SP, nov/2025",
+     "valor": 4745
+    }
+   },
+   "preco": {
+    "BR": {
+     "fonte": "média de DF, GO, MG, MS, PR, RS e SC, out/2026",
+     "valor": 81.43
+    },
+    "DF": {
+     "fonte": "DF, out/2026",
+     "valor": 88.2
+    },
+    "GO": {
+     "fonte": "GO, out/2026",
+     "valor": 79.8
+    },
+    "MG": {
+     "fonte": "MG, out/2026",
+     "valor": 93.6
+    },
+    "MS": {
+     "fonte": "MS, out/2026",
+     "valor": 78.0
+    },
+    "PR": {
+     "fonte": "PR, out/2026",
+     "valor": 79.2
+    },
+    "RS": {
+     "fonte": "RS, out/2026",
+     "valor": 73.2
+    },
+    "SC": {
+     "fonte": "SC, out/2026",
+     "valor": 78.0
+    }
+   },
+   "produtividade": {
+    "BA": {
+     "fonte": "BA, safra 2025, 12º levantamento",
+     "valor": 100.0
+    },
+    "BR": {
+     "fonte": "Brasil, safra 2025, 12º levantamento",
+     "valor": 49.6
+    },
+    "DF": {
+     "fonte": "DF, safra 2025, 12º levantamento",
+     "valor": 64.1
+    },
+    "GO": {
+     "fonte": "GO, safra 2025, 12º levantamento",
+     "valor": 62.6
+    },
+    "MG": {
+     "fonte": "MG, safra 2025, 12º levantamento",
+     "valor": 48.6
+    },
+    "MS": {
+     "fonte": "MS, safra 2025, 12º levantamento",
+     "valor": 27.3
+    },
+    "PR": {
+     "fonte": "PR, safra 2025, 12º levantamento",
+     "valor": 49.5
+    },
+    "RS": {
+     "fonte": "RS, safra 2025, 12º levantamento",
+     "valor": 48.7
+    },
+    "SC": {
+     "fonte": "SC, safra 2025, 12º levantamento",
+     "valor": 56.8
+    },
+    "SP": {
+     "fonte": "SP, safra 2025, 12º levantamento",
+     "valor": 50.9
+    }
+   },
+   "unidade": "sc"
+  }
+ },
+ "fonte": "Conab, Portal de Informações Agropecuárias (portaldeinformacoes.conab.gov.br)"
+}

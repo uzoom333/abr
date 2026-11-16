@@ -219,7 +219,7 @@ details.trechos summary { cursor: pointer; color: var(--apagado); width: fit-con
     <details class="eco">
       <summary>Produtividade, preço e custo de cada cultura</summary>
       <div class="rolagem"><table id="economia"></table></div>
-      <p class="dica">A produtividade já preenchida é a média nacional da Conab (safra 2025/26); preço e custo são só um exemplo. Troque pelos seus: o ABR não busca preço nem custo real.</p>
+      <p class="dica" id="dica-plantar"></p>
     </details>
     <button class="acao">Ver culturas</button>
   </form>
@@ -273,7 +273,7 @@ details.trechos summary { cursor: pointer; color: var(--apagado); width: fit-con
       <div class="campos" id="prod-ciclos"></div>
     </fieldset>
     <fieldset><legend>Cidades</legend><div class="cidades"></div></fieldset>
-    <p class="dica">A produtividade já preenchida parte da média nacional da Conab (safra 2025/26); a diferença entre os ciclos da soja, o preço e o custo são só um exemplo. Troque pelos seus: o ABR não busca preço nem custo real.</p>
+    <p class="dica" id="dica-financeiro"></p>
     <button class="acao">Calcular</button>
   </form>
   <div class="saida"></div>
@@ -314,7 +314,7 @@ details.trechos summary { cursor: pointer; color: var(--apagado); width: fit-con
       <p class="dica">Solos: deixe vazio para tudo em AD2, ou divida a área assim: <code>AD2:60 AD4:40</code>.</p>
       <button type="button" class="leve" id="mais-cidade">Adicionar cidade</button>
     </fieldset>
-    <p class="dica">Preços, custos e produtividades já preenchidos são só um exemplo. Troque pelos seus.</p>
+    <p class="dica" id="dica-otimizacao"></p>
     <button class="acao">Otimizar</button>
   </form>
   <div class="saida"></div>
@@ -531,6 +531,7 @@ function ligaOpcoes(id, aoMudar = () => {}) {
     culturaAntes = form.cultura.value;
   }
   form.cultura.addEventListener("change", carrega);
+  form.addEventListener("estado", () => culturaAntes = null);  // estado novo: os valores da Conab mudam
   form.addEventListener("cidades", carrega);
   form.solo.addEventListener("change", () => mudou(false));
 }
@@ -559,21 +560,22 @@ function porCiclo(viaveis) {
   }
   return ciclos;
 }
-// A produtividade é um campo por ciclo que o solo tem. Ao trocar a cultura, custo, preço e
-// produtividade voltam para o exemplo dela; na soja o exemplo muda com o ciclo.
-const PROD_SOJA = { precoce: 58, medio: 62, tardio: 64 };
+// A produtividade é um campo por ciclo que o solo tem. Ao trocar a cultura ou o estado, custo,
+// preço e produtividade voltam para o valor da Conab; na soja a produtividade muda com o ciclo.
 const culturaDe = form => inicio.culturas.find(c => c.chave === form.cultura.value);
 ligaOpcoes("financeiro", (ciclos, trocouCultura) => {
   const form = $("#financeiro form"), c = culturaDe(form);
   if (trocouCultura) {
-    form.custo_ha.value = c.custo;
-    form.preco_saca.value = c.preco;
+    form.custo_ha.value = num(c.custo);
+    form.preco_saca.value = num(c.preco);
+    $("#dica-financeiro").textContent = `Valores da Conab${baixados()}: ${fonteDe(c)}.` +
+      (c.chave === "soja" ? " A diferença entre os ciclos é só um exemplo." : "") + " Troque pelos seus.";
     $("#rotulo-preco").textContent = `Preço da ${c.nome_unidade} (R$)`;
     $("#rotulo-prod").textContent = `Produtividade esperada (${c.unidade}/ha)`;
   }
   const antes = trocouCultura ? {} : Object.fromEntries($$("#prod-ciclos input").map(i => [i.dataset.ciclo, i.value]));
   $("#prod-ciclos").innerHTML = ciclos.map(k => `<label>${nomeCiclo(k)} <input data-ciclo="${k}" inputmode="decimal"
-    value="${antes[k] ?? (c.chave === "soja" ? PROD_SOJA[k] : c.produtividade)}"></label>`).join("");
+    value="${antes[k] ?? num(prodCiclo(c, k))}"></label>`).join("");
 });
 liga("financeiro", (f, form) => ["/api/financeiro", { ...f, codigos: marcadas(form),
     produtividade: Object.fromEntries($$("#prod-ciclos input").map(i => [i.dataset.ciclo, i.value])) }], (r, f, form) => `
@@ -906,6 +908,30 @@ function mostraAba(evento) {
   const daCapa = evento && scrollY < $("#app").offsetTop - 5;
   if (id === alvo) $("#app").scrollIntoView({ behavior: daCapa ? "smooth" : "instant" });
 }
+/* Os valores que já vêm preenchidos são da Conab, por estado (valores.py no servidor).
+   Roda no início e a cada troca de estado. */
+const num = v => String(v).replace(".", ",");
+const CICLO_SOJA = { precoce: .94, medio: 1, tardio: 1.03 };  // a diferença entre os ciclos da soja é exemplo, não é da Conab
+const prodCiclo = (c, ciclo) => c.chave === "soja" && CICLO_SOJA[ciclo] ? Math.round(c.produtividade * CICLO_SOJA[ciclo]) : c.produtividade;
+const fonteDe = c => `produtividade: ${c.fonte.produtividade}; preço: ${c.fonte.preco}; custo: ${c.fonte.custo}`;
+const baixados = () => inicio.valores_em ? `, baixados em ${inicio.valores_em}` : "";
+function encheValores() {
+  $("#economia").innerHTML = `<tr><th>Cultura</th><th>Produtividade por ha</th><th>Preço (R$)</th><th>Custo (R$/ha)</th><th>De onde vem (Conab)</th></tr>` +
+    inicio.culturas.map(c => `<tr><td>${esc(c.nome)}<br><small>${esc(c.nome_unidade)}</small></td>
+      <td><input name="prod_${c.chave}" inputmode="decimal" value="${num(c.produtividade)}" aria-label="Produtividade de ${esc(c.nome)}, em ${c.unidade} por hectare"></td>
+      <td><input name="preco_${c.chave}" inputmode="decimal" value="${num(c.preco)}" aria-label="Preço de ${esc(c.nome)}, por ${esc(c.nome_unidade)}"></td>
+      <td><input name="custo_${c.chave}" inputmode="decimal" value="${num(c.custo)}" aria-label="Custo de ${esc(c.nome)}, por hectare"></td>
+      <td><small>${esc(fonteDe(c))}</small></td></tr>`).join("");
+  $("#dica-plantar").textContent = `Valores da Conab para ${inicio.uf}${baixados()}. Onde a Conab não levanta o dado no estado, vale o do Brasil ou a média dos estados que têm. Troque pelos seus.`;
+
+  const soja = inicio.culturas.find(c => c.chave === "soja"), milho = inicio.culturas.find(c => c.chave === "milho2");
+  const form = $("#otimizacao form");
+  form.s_custo.value = num(soja.custo); form.s_preco.value = num(soja.preco);
+  for (const k in CICLO_SOJA) form["s_" + k].value = num(prodCiclo(soja, k));
+  if (milho) { form.m_custo.value = num(milho.custo); form.m_preco.value = num(milho.preco); form.m_prod.value = num(milho.produtividade); }
+  $("#dica-otimizacao").textContent = `Valores da Conab para ${inicio.uf}${baixados()}. Soja: ${fonteDe(soja)}.` +
+    (milho ? ` Milho: ${fonteDe(milho)}.` : "") + ` A diferença entre os ciclos da soja é só um exemplo. Troque pelos seus.`;
+}
 const opcoesCidade = () => inicio.municipios.map(m => `<option value="${m.codigo}">${esc(m.nome)}</option>`).join("");
 function encheCidades() {
   $$("select.cidade").forEach(s => s.innerHTML = opcoesCidade());
@@ -933,8 +959,12 @@ async function trocaEstado() {
   const uf = $("#uf");
   uf.disabled = true;
   try {
-    inicio.municipios = (await pede("/api/municipios", { uf: uf.value })).municipios;
+    const r = await pede("/api/municipios", { uf: uf.value });
+    inicio.municipios = r.municipios;
+    inicio.culturas = r.culturas;
     inicio.uf = uf.value;
+    encheValores();
+    $$("form").forEach(f => f.dispatchEvent(new Event("estado")));
     encheCidades();
   } catch (erro) {
     uf.value = inicio.uf;
@@ -955,11 +985,7 @@ async function trocaEstado() {
   $("#uf").onchange = trocaEstado;
   $("#estado").hidden = inicio.ufs.length < 2;
   $$("#janela select[name=cultura], select.cultura").forEach(s => s.innerHTML = inicio.culturas.map(c => `<option value="${c.chave}">${esc(c.nome)}</option>`).join(""));
-  $("#economia").innerHTML = `<tr><th>Cultura</th><th>Produtividade por ha</th><th>Preço (R$)</th><th>Custo (R$/ha)</th></tr>` +
-    inicio.culturas.map(c => `<tr><td>${esc(c.nome)}<br><small>${esc(c.nome_unidade)}</small></td>
-      <td><input name="prod_${c.chave}" inputmode="decimal" value="${c.produtividade}" aria-label="Produtividade de ${esc(c.nome)}, em ${c.unidade} por hectare"></td>
-      <td><input name="preco_${c.chave}" inputmode="decimal" value="${c.preco}" aria-label="Preço de ${esc(c.nome)}, por ${esc(c.nome_unidade)}"></td>
-      <td><input name="custo_${c.chave}" inputmode="decimal" value="${c.custo}" aria-label="Custo de ${esc(c.nome)}, por hectare"></td></tr>`).join("");
+  encheValores();
   encheCidades();
   $$("select.ciclo").forEach(s => s.innerHTML = inicio.ciclos.map(c => `<option value="${c}">${NOME_CICLO[c]}</option>`).join(""));
   const hoje = new Date(); hoje.setMinutes(hoje.getMinutes() - hoje.getTimezoneOffset());
