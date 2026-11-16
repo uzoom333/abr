@@ -130,6 +130,8 @@ td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
 .faixa i { display: block; height: 1.5rem; background: var(--vazio); border-radius: 2px; font-style: normal;
   font-size: .62rem; line-height: 1.5rem; text-align: center; overflow: hidden; font-variant-numeric: tabular-nums; }
 .faixa i.j { background: var(--janela); }
+.faixa i.r30 { background: var(--milho-claro); }
+.faixa i.r40 { background: color-mix(in srgb, var(--alerta) 38%, var(--vazio)); }
 .faixa i.p { background: var(--verde); color: var(--papel); font-weight: 600; }
 .faixa.milho i.j { background: var(--milho-claro); }
 .faixa.milho i.p { background: var(--milho); color: var(--papel); }
@@ -210,16 +212,22 @@ details.trechos summary { cursor: pointer; color: var(--apagado); width: fit-con
 
 <section id="plantar">
   <h2>O que plantar</h2>
-  <p class="sub">Quais culturas estão dentro da janela do ZARC na cidade e na data, e qual delas dá mais lucro por hectare. Plantar dentro da janela é a condição do Ministério da Agricultura para o Proagro e para o seguro rural com subvenção.</p>
+  <p class="sub">Informe a fazenda uma vez. O ABR mostra quais culturas estão dentro da janela do ZARC na data, com que risco, e qual delas deixa mais lucro esperado.</p>
   <form>
-    <div class="campos">
+    <div class="campos c5">
       <label>Cidade <select name="codigo" class="cidade"></select></label>
       <label>Data do plantio <input type="date" name="data" min="2024-01-01" max="2030-12-31" required></label>
+      <label>Área (ha) <input name="area" inputmode="decimal" placeholder="opcional"></label>
+      <label>Solo: água disponível <select name="solo_ad"></select></label>
+      <label>Solo: textura <select name="textura"></select></label>
     </div>
+    <p class="dica">O ZARC classifica o solo pela classe de água disponível (AD1 a AD6) em umas culturas e pela textura em outras. Sem o solo, o ABR olha todos e fica com o menor risco. A fazenda fica guardada neste navegador.</p>
     <details class="eco">
-      <summary>Produtividade, preço e custo de cada cultura</summary>
+      <summary>Produtividade, preço, custo e quebra em ano ruim</summary>
       <div class="rolagem"><table id="economia"></table></div>
       <p class="dica" id="dica-plantar"></p>
+      <div class="campos" style="margin-top:.8rem"><label>Quebra da produção em ano ruim (%) <input name="quebra" inputmode="decimal" required></label></div>
+      <p class="dica">O ZARC dá a chance de haver perda (o risco), não o tamanho dela. O tamanho é hipótese sua.</p>
     </details>
     <button class="acao">Ver culturas</button>
   </form>
@@ -374,15 +382,15 @@ async function pede(rota, dados) {
 }
 
 /* Faixa de 36 decêndios. janela e plantado: listas/objetos indexados por t; marca: o t da data consultada. */
-function faixa({ janela = [], plantado = {}, marca, classe = "", meses = true }) {
+function faixa({ janela = [], risco = {}, plantado = {}, marca, classe = "", meses = true }) {
   const dentro = new Set(janela);
   let html = `<div class="faixa ${classe}">`;
   for (let m = 0; m < 12; m++) {
     html += `<div class="mes">${meses ? `<span>${MESES[m]}</span>` : ""}<div class="decs">`;
     for (let t = m * 3 + 1; t <= m * 3 + 3; t++) {
       const qtd = plantado[t];
-      const classes = [qtd ? "p" : dentro.has(t) ? "j" : "", t === marca ? "m" : ""].join(" ");
-      const titulo = nomeT(t) + (qtd ? `: ${ha(qtd)} ha` : dentro.has(t) ? ": na janela" : "");
+      const classes = [qtd ? "p" : risco[t] ? "j r" + risco[t] : dentro.has(t) ? "j" : "", t === marca ? "m" : ""].join(" ");
+      const titulo = nomeT(t) + (qtd ? `: ${ha(qtd)} ha` : risco[t] ? `: risco de até ${risco[t]}%` : dentro.has(t) ? ": na janela" : "");
       html += `<i class="${classes}" title="${titulo}">${qtd ? ha(qtd) : ""}</i>`;
     }
     html += "</div></div>";
@@ -419,36 +427,56 @@ const marcadas = form => $$(".escolhidas button", form).map(b => +b.value);
 
 /* ---------- O que plantar ---------- */
 const dataPorExtenso = iso => new Date(iso + "T12:00").toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" });
-const ondeVale = l => l.status !== "dentro" ? "" : `<p class="onde">${l.todas ? "Vale para todos os solos e ciclos." :
-  "Vale para " + Object.entries(l.onde).map(([c, solos]) => `${nomeCiclo(c).toLowerCase()}: ${solos.map(nomeSolo).join(", ")}`).join("; ") + "."}</p>`;
-const unid = (n, u) => `${n.toLocaleString("pt-BR")} ${u}`;
+// só mostra o risco por ciclo quando os ciclos não têm todos o mesmo
+const ciclosDaLinha = l => new Set(l.ciclos.map(c => c.risco)).size < 2 ? "" :
+  `<p class="onde">Na data: ${l.ciclos.map(c => `${nomeCiclo(c.ciclo).toLowerCase()} ${c.risco}%`).join(", ")}.</p>`;
+const situacaoDaLinha = l => l.status === "sem_zarc" ? `<span class="selo">sem zoneamento</span>` :
+  l.status === "sem_solo" ? `<span class="selo">sem zoneamento no solo ${esc(nomeSolo(l.solo))}</span>` :
+  selo(l) + (l.status === "dentro" ? `<br><span class="selo ${{ 20: "dentro", 30: "antes", 40: "passou" }[l.risco]}">risco de até ${l.risco}%</span>` : "");
 function economiaDoForm(f) {
   const economia = {};
   inicio.culturas.forEach(c => economia[c.chave] = { produtividade: f["prod_" + c.chave], preco: f["preco_" + c.chave], custo: f["custo_" + c.chave] });
   return economia;
 }
+/* A fazenda (estado, cidade, área, solos, quebra) fica guardada no navegador e volta preenchida. */
+const FAZENDA = "abr-fazenda";
+function fazendaGuardada() {
+  try { return JSON.parse(localStorage.getItem(FAZENDA)) || {}; } catch { return {}; }
+}
+function guardaFazenda(f) {
+  try {
+    localStorage.setItem(FAZENDA, JSON.stringify({ uf: inicio.uf, codigo: f.codigo, area: f.area, solo_ad: f.solo_ad, textura: f.textura, quebra: f.quebra }));
+  } catch {}
+}
 const ranking = r => !r.ranking.length ? "" : `
   <h3>Qual compensa mais, entre as que estão dentro da janela</h3>
   <div class="rolagem"><table>
-    <tr><th></th><th>Cultura</th><th class="n">Produtividade</th><th class="n">Preço</th><th class="n">Receita por ha</th><th class="n">Custo por ha</th><th class="n">Lucro por ha</th></tr>
-    ${r.ranking.map((l, i) => `<tr><td class="n">${i + 1}</td><td>${esc(l.nome)}</td><td class="n">${unid(l.produtividade, l.unidade + "/ha")}</td>
-      <td class="n">${reais(l.preco)}/${l.unidade}</td><td class="n">${reais(l.receita)}</td><td class="n">${reais(l.custo)}</td>
-      <td class="n"><strong>${reais(l.lucro)}</strong></td></tr>`).join("")}
+    <tr><th></th><th>Cultura</th><th class="n">Risco na data</th><th class="n">Lucro por ha, ano normal</th><th class="n">Lucro por ha, ano ruim</th><th class="n">Lucro esperado por ha</th>${r.area ? `<th class="n">Esperado em ${ha(r.area)} ha</th>` : ""}</tr>
+    ${r.ranking.map((l, i) => `<tr><td class="n">${i + 1}</td><td>${esc(l.nome)}</td><td class="n">até ${l.risco}%</td>
+      <td class="n">${reais(l.normal)}</td><td class="n">${reais(l.ruim)}</td>
+      <td class="n"><strong>${reais(l.esperado)}</strong></td>${r.area ? `<td class="n">${reais(l.total)}</td>` : ""}</tr>`).join("")}
   </table></div>
-  <p class="nota">Conta feita com a produtividade, o preço e o custo do formulário acima (abra "Produtividade, preço e custo de cada cultura" para trocar). Não entram frete, impostos, financiamento nem arrendamento. Cana e café são culturas de vários anos: o valor é de um ano de lavoura já formada, não do ano do plantio.</p>
-  <h3>Janela de cada cultura</h3>`;
-liga("plantar", f => ["/api/plantar", { codigo: f.codigo, data: f.data, economia: economiaDoForm(f) }], (r, f) => `
+  <p class="nota">Ano ruim é ${r.quebra.toLocaleString("pt-BR")}% a menos de produção, com o custo inteiro; essa quebra é hipótese, não é do ZARC. O lucro esperado é a média dos dois anos, pesada pelo risco do ZARC na data. Para trocar a quebra, a produtividade, o preço ou o custo, abra "Produtividade, preço, custo e quebra em ano ruim" no formulário. Não entram frete, impostos, financiamento nem arrendamento. Cana e café são culturas de vários anos: o valor é de um ano de lavoura já formada, não do ano do plantio.</p>
+  <h3>Janela e risco de cada cultura</h3>`;
+const melhor = r => {
+  if (!r.ranking.length) return "";
+  const m = r.ranking[0];
+  return ` ${esc(m.nome)} deixa o maior lucro esperado: ${reais(m.esperado)} por hectare${r.area ? `, ${reais(m.total)} em ${ha(r.area)} ha` : ""}, com risco de até ${m.risco}%.`;
+};
+liga("plantar", f => { guardaFazenda(f); return ["/api/plantar", { codigo: f.codigo, data: f.data, area: f.area, solo_ad: f.solo_ad, textura: f.textura, quebra: f.quebra, economia: economiaDoForm(f) }]; }, (r, f) => `
   <div class="resultado"><div class="planta">${pixels(PLANTA[r.dentro ? "soja" : "broto"], 10)}</div><div>
   <p class="veredito ${r.dentro ? "dentro" : "fora"}">${r.dentro ? plural(r.dentro, "cultura dentro da janela", "culturas dentro da janela") : "Nenhuma cultura dentro da janela"}</p>
-  <p>${esc(r.cidade)} (${r.uf}), ${dataPorExtenso(f.data)}, que cai no ${r.nome_decendio}.${r.ranking.length > 1 ? ` Entre elas, ${esc(r.ranking[0].nome.toLowerCase())} dá o maior lucro por hectare.` : ""}</p></div></div>
+  <p>${esc(r.cidade)} (${r.uf}), ${dataPorExtenso(f.data)}, que cai no ${r.nome_decendio}.${melhor(r)}</p></div></div>
   ${ranking(r)}
   <div class="rolagem"><table>
     <tr><th>Cultura</th><th>Situação na data</th><th style="width:60%">Janela no ano-safra</th></tr>
-    ${r.linhas.map((l, i) => `<tr><td>${esc(l.nome)}</td>
-      <td>${l.status === "sem_zarc" ? `<span class="selo">sem zoneamento</span>` : selo(l)}</td>
-      <td>${faixa({ janela: l.janela, marca: r.t, classe: "baixa", meses: i === 0 })}${ondeVale(l)}</td></tr>`).join("")}
+    ${r.linhas.map((l, i) => `<tr><td>${esc(l.nome)}${l.solo ? `<br><small>solo ${esc(nomeSolo(l.solo))}</small>` : ""}</td>
+      <td>${situacaoDaLinha(l)}</td>
+      <td>${faixa({ risco: l.calendario, marca: r.t, classe: "baixa", meses: i === 0 })}${ciclosDaLinha(l)}</td></tr>`).join("")}
   </table></div>
-  <p class="nota">Risco de até 20%. A faixa mostra a janela mais larga da cultura, juntando todos os solos e ciclos; para um solo e um ciclo específicos, use a aba <a href="#janela">Janela de plantio</a>.</p>`);
+  <div class="legenda"><span><b style="background:var(--janela)"></b>risco de até 20%</span>
+    <span><b style="background:var(--milho-claro)"></b>até 30%</span><span><b style="background:color-mix(in srgb, var(--alerta) 38%, var(--vazio))"></b>até 40%</span></div>
+  <p class="nota">O risco é a chance de perda de rendimento por clima adverso, segundo o ZARC.${r.so_risco_20 ? " No modo demo só existe o nível de 20%." : ""} A faixa mostra o menor risco de cada decêndio entre os ciclos da cultura, no solo da fazenda ou, sem ele, em todos os solos. Para um solo e um ciclo específicos, use a aba <a href="#janela">Janela de plantio</a>.</p>`);
 
 /* ---------- Janela de plantio ---------- */
 /* Solo e ciclo dependem da cidade e da cultura: a lista vem do ZARC. */
@@ -472,7 +500,9 @@ async function carregaOpcoes() {
   }
   if (chave !== opcoesDe) return;  // a pessoa já trocou de cidade ou cultura
   form.solo.innerHTML = solosJanela.map(s => `<option value="${s.solo}">${nomeSolo(s.solo)}</option>`).join("");
+  const daFazenda = solosJanela.find(s => [fazendaGuardada().solo_ad, fazendaGuardada().textura].includes(s.solo));
   if (solosJanela.some(s => s.solo === antes)) form.solo.value = antes;
+  else if (daFazenda) form.solo.value = daFazenda.solo;
   else if (solosJanela.some(s => s.solo === "AD2")) form.solo.value = "AD2";
   encheCiclos();
 }
@@ -934,7 +964,11 @@ function encheValores() {
 }
 const opcoesCidade = () => inicio.municipios.map(m => `<option value="${m.codigo}">${esc(m.nome)}</option>`).join("");
 function encheCidades() {
-  $$("select.cidade").forEach(s => s.innerHTML = opcoesCidade());
+  const guardada = fazendaGuardada();
+  $$("select.cidade").forEach(s => {
+    s.innerHTML = opcoesCidade();
+    if (guardada.uf === inicio.uf && inicio.municipios.some(m => m.codigo == guardada.codigo)) s.value = guardada.codigo;
+  });
   $$(".cidades").forEach(div => {
     div.innerHTML = `<select aria-label="Adicionar cidade"></select><div class="escolhidas"></div>`;
     const lista = $("select", div), escolhidas = $(".escolhidas", div);
@@ -986,6 +1020,20 @@ async function trocaEstado() {
   $("#estado").hidden = inicio.ufs.length < 2;
   $$("#janela select[name=cultura], select.cultura").forEach(s => s.innerHTML = inicio.culturas.map(c => `<option value="${c.chave}">${esc(c.nome)}</option>`).join(""));
   encheValores();
+  {
+    const form = $("#plantar form"), guardada = fazendaGuardada();
+    const opcoesSolo = solos => `<option value="">não sei</option>` + solos.map(s => `<option value="${s}">${nomeSolo(s)}</option>`).join("");
+    form.solo_ad.innerHTML = opcoesSolo(inicio.solos_ad);
+    form.textura.innerHTML = opcoesSolo(inicio.texturas);
+    form.solo_ad.value = guardada.solo_ad || "";
+    form.textura.value = guardada.textura || "";
+    form.area.value = guardada.area || "";
+    form.quebra.value = guardada.quebra || num(inicio.quebra);
+    if (guardada.uf && guardada.uf !== inicio.uf && inicio.ufs.includes(guardada.uf)) {
+      $("#uf").value = guardada.uf;
+      await trocaEstado();  // já enche as cidades do estado da fazenda
+    }
+  }
   encheCidades();
   $$("select.ciclo").forEach(s => s.innerHTML = inicio.ciclos.map(c => `<option value="${c}">${NOME_CICLO[c]}</option>`).join(""));
   const hoje = new Date(); hoje.setMinutes(hoje.getMinutes() - hoje.getTimezoneOffset());

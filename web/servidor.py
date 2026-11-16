@@ -135,6 +135,9 @@ def inicio(_):
         "municipios": lista_municipios(api.UF_PADRAO),
         "culturas": culturas_do_estado(api.UF_PADRAO),
         "valores_em": valores.atualizado_em(),
+        "quebra": seguro.QUEBRA_PADRAO,
+        "solos_ad": api.ORDEM_SOLOS[:6],
+        "texturas": api.ORDEM_SOLOS[6:],
         "ciclos": CICLOS,
         "plantadeira": otimizacao.PLANTADEIRA_PADRAO,
         "hipoteses": {
@@ -204,28 +207,44 @@ def janela(d):
     }
 
 
+def le_solo(solo, opcoes):
+    """Solo da fazenda vindo da tela: vazio = não informado."""
+    solo = str(solo or "").upper()
+    if solo and solo not in opcoes:
+        raise Erro("Solo inválido.")
+    return solo
+
+
+def le_quebra(valor):
+    try:
+        quebra = float(str(valor).replace(",", "."))
+    except ValueError:
+        raise Erro("Quebra em ano ruim: digite um número.")
+    if not 0 <= quebra <= 100:
+        raise Erro("Quebra em ano ruim: precisa ficar entre 0 e 100.")
+    return quebra
+
+
 def plantar(d):
-    """Opção 8 da CLI: a data em todas as culturas. Quais estão dentro da janela?"""
+    """Opção 8 da CLI: a fazenda (cidade, solo, área) e a data em todas as culturas.
+    Quais estão dentro da janela, com que risco, e qual deixa mais lucro esperado."""
     codigo, data = int(d["codigo"]), le_data(d["data"])
+    solos = [s for s in (le_solo(d.get("solo_ad"), api.ORDEM_SOLOS[:6]),
+                         le_solo(d.get("textura"), api.ORDEM_SOLOS[6:])) if s]
+    area = le_positivo(d["area"], "Área") if str(d.get("area") or "").strip() else None
+    quebra = le_quebra(d.get("quebra", seguro.QUEBRA_PADRAO))
     economia = {}
     for cultura, valores in (d.get("economia") or {}).items():
         nome = api.CULTURAS[le_cultura(cultura)]["nome"]
         economia[cultura] = {"produtividade": le_positivo(valores["produtividade"], f"Produtividade de {nome.lower()}"),
                              "preco": le_positivo(valores["preco"], f"Preço de {nome.lower()}"),
                              "custo": le_positivo(valores["custo"], f"Custo de {nome.lower()}")}
-    situacao = seguro.culturas_na_data(codigo, data)
+    situacao = [l for l in seguro.culturas_na_data(codigo, data, solos) if l["cultura"] in culturas_disponiveis()]
     linhas = []
     for linha in situacao:
-        if linha["cultura"] not in culturas_disponiveis():
-            continue
-        # a faixa desenhada é a janela mais larga: a união de todos os solos e ciclos
-        uniao = set()
-        for janelas in (api.zarc_por_solo(codigo, linha["cultura"]) or {}).values():
-            for janela_ciclo in janelas.values():
-                uniao.update(janela_ciclo)
-        linhas.append({"cultura": linha["cultura"], "nome": linha["nome"], "status": linha["status"],
-                       "decendios": linha["decendios"], "onde": linha["onde"], "todas": linha["todas"],
-                       "janela": janela_em_safra(uniao)})
+        # a faixa desenhada: o menor risco de cada decêndio, nos solos e ciclos olhados
+        calendario = {para_ano_safra(dec): risco for dec, risco in linha["calendario"].items()}
+        linhas.append({**linha, "calendario": calendario})
     decendio = qual_decendio(data)
     return {
         "cidade": nomes_municipios().get(codigo, "?"),
@@ -234,7 +253,10 @@ def plantar(d):
         "t": para_ano_safra(decendio),
         "linhas": linhas,
         "dentro": sum(1 for l in linhas if l["status"] == "dentro"),
-        "ranking": seguro.ranking_das_seguras(situacao, economia),
+        "ranking": seguro.ranking_com_risco(situacao, economia, quebra, area),
+        "area": area,
+        "quebra": quebra,
+        "so_risco_20": api.MODO_DEMO,
     }
 
 

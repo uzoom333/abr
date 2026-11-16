@@ -154,7 +154,7 @@ def main():
 
 def menu():
     while True:
-        escolha = input("Escolha qual opçao deseja (1-> Nova Consulta,2-> Ver historico,3-> Comparar,4-> Ver estatisticas,5-> Exportar historico para Excel,6-> Analise financeira,7-> Otimizacao soja + safrinha,8-> O que e seguro plantar,9-> Saindo do menu)!")
+        escolha = input("Escolha qual opçao deseja (1-> Nova Consulta,2-> Ver historico,3-> Comparar,4-> Ver estatisticas,5-> Exportar historico para Excel,6-> Analise financeira,7-> Otimizacao soja + safrinha,8-> O que plantar,9-> Saindo do menu)!")
         if escolha == "1":
             main()
         elif escolha == "2":

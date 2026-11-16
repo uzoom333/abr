@@ -11,7 +11,7 @@ Current features (V3):
 - nine crops: soybean, first- and second-crop corn, rice, beans, wheat, cotton, sugarcane and arabica coffee;
 - municipalities of every state with an API token (five municipalities in Goiás, soybean only, in demo mode);
 - planting-window checks by crop, soil class, cycle and date;
-- "what to plant": the same date checked across all crops, and the profit per hectare of the ones inside the window;
+- "what to plant": the farm (municipality, soil, area) entered once and a date checked across all crops, with the ZARC risk level (20%, 30% or 40%) of each crop on that date and the expected profit per hectare and for the whole area;
 - comparison between cities, up to ten at a time;
 - financial analysis: profit per hectare by cycle, with the cities where each cycle can still be planted;
 - a linear program that plans soybean and second-crop corn planting (see below);
@@ -30,9 +30,13 @@ The project is intentionally evolving alongside my studies in Linear Algebra, ma
 
 ## Data and Decision Logic
 
-ABR requests zoning records from the AgroAPI Agritec v2 `/zoneamento` endpoint, one request per municipality and crop, with a maximum risk level of 20%. Each record carries a soil class (AD1–AD6, or sandy / medium / clay texture, depending on the crop) and a cycle (early, medium, late, semi-perennial or perennial). Calendar dates are mapped to ten-day periods (*decêndios*) before being compared with the zoning windows returned by the API. Every answer is cached in `cache_zarc_bruto.json`, so a municipality and crop pair is requested only once; the free AgroAPI plan allows 1,000 requests per month.
+ABR requests zoning records from the AgroAPI Agritec v2 `/zoneamento` endpoint. Each record carries a soil class (AD1–AD6, or sandy / medium / clay texture, depending on the crop) and a cycle (early, medium, late, semi-perennial or perennial). Calendar dates are mapped to ten-day periods (*decêndios*) before being compared with the zoning windows returned by the API. Every answer is cached in `cache_zarc_bruto.json`, so the same request is made only once; the free AgroAPI plan allows 1,000 requests per month.
 
-Profit figures use yield, price and cost typed by the user. The form starts with example values (`ECONOMIA_EXEMPLO` in `seguro.py`): the yields are CONAB national averages (grain survey 2025/26, 11th report; sugarcane 2026/27, 2nd report; coffee 2026, 3rd report), while **prices and costs are placeholders with no source** and must be replaced before reading any result.
+ZARC classifies each ten-day period by the probability of yield loss from adverse weather: below 20%, 30% or 40%. The API returns one level per request. Planting-window checks, city comparison, financial analysis and the optimization use the 20% level (one request per municipality and crop). "What to plant" uses the three levels (three requests per municipality and crop, 27 for a municipality seen for the first time).
+
+Profit figures use yield, price and cost typed by the user. The form starts with CONAB values for the selected state (`valores.py` downloads CONAB's open data files and writes `valores_conab.json`): yield from the latest crop survey, price received by the producer in the latest published month, and variable plus fixed cost per hectare. The source of each number is shown next to it. Where CONAB has no figure for the state, the national yield or the average of the states that have one is used, and the source text says so. Coverage is uneven: sugarcane cost, for instance, exists for a single municipality in Alagoas.
+
+"What to plant" combines the two: the risk level on the planting date is read as the chance of a bad year, and expected profit is the average of a normal year and a bad year weighted by that chance. ZARC gives the probability of a loss, not its size, so the yield lost in a bad year (50% by default) **is an assumption typed by the user, not ZARC data**. Since each level is an upper bound, the result is the worst case within the level.
 
 The underlying records come from an external public service and may be unavailable, revised, or incomplete. Always consult the official ZARC publications for decisions with real agricultural consequences.
 
@@ -115,7 +119,7 @@ An access token is available after registration in the [AgroAPI portal](https://
 python main.py
 ```
 
-The interactive menu has nine options: new planting-window query (state, municipality, crop, soil, cycle and date), query history, municipality comparison, history statistics, Excel export, financial analysis, soybean + second-crop corn optimization, what is safe to plant, and exit.
+The interactive menu has nine options: new planting-window query (state, municipality, crop, soil, cycle and date), query history, municipality comparison, history statistics, Excel export, financial analysis, soybean + second-crop corn optimization, what to plant (farm, risk and expected profit), and exit.
 
 ### Soybean + second-crop corn optimization
 
@@ -132,7 +136,8 @@ With a token, the corn windows come from the AgroAPI (`idCultura=57`, second-cro
 in `.env` overrides it).
 
 `python teste_otimizacao.py` checks the model against a small instance solvable by hand, and
-`python teste_virada.py` checks windows that cross the turn of the year.
+`python teste_virada.py` checks windows that cross the turn of the year, and `python teste_risco.py`
+checks the expected-profit arithmetic and the choice of the farm's soil.
 
 ### Document search and answers with citations — RAG
 
@@ -220,10 +225,12 @@ abr/
 ├── estatistica.py    # Summary statistics and ASCII charts
 ├── exportacao.py     # Excel export of the query history
 ├── financeiro.py     # Profit comparison by city and cycle
-├── seguro.py         # What is safe to plant: one date across all crops, and profit per hectare
+├── seguro.py         # What to plant: one date across all crops, with ZARC risk and expected profit
+├── valores.py        # Yield, price and cost per crop and state from CONAB open data
 ├── otimizacao.py     # Linear program: soybean + second-crop corn plan
 ├── teste_otimizacao.py # Hand-checkable test of the linear program
 ├── teste_virada.py   # Test of windows that cross the turn of the year
+├── teste_risco.py    # Test of expected profit and farm soil selection
 ├── web/              # Web interface: servidor.py (JSON over http.server) and index.html
 ├── rag/              # RAG: download, extraction, index, three searches, hit@5 evaluation, answers via Ollama
 ├── demo/             # Bundled sample data used when no API token is present

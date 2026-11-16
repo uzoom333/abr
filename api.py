@@ -258,11 +258,20 @@ def ordena_ciclos(ciclos):
 # ZARC
 # ============================================
 
-def _zarc_bruto(codigo_ibge, id_cultura):
+# Os níveis de risco do ZARC: a chance de perda de rendimento por clima adverso fica abaixo
+# de 20%, de 30% ou de 40% (item 1.6 das portarias). A API devolve um nível por pedido, e só
+# os decêndios daquele nível: os de 30% não repetem os de 20%.
+RISCOS = [20, 30, 40]
+RISCO_PADRAO = 20
+
+
+def _zarc_bruto(codigo_ibge, id_cultura, risco=RISCO_PADRAO):
     """Registros do /zoneamento como a API devolve, com cache próprio.
     Retorna lista (vazia se a cidade não tem zoneamento) ou None se a API falhar."""
     arquivo_cache = "cache_zarc_bruto.json"
     chave = f"{id_cultura}:{codigo_ibge}"
+    if risco != RISCO_PADRAO:  # o cache antigo só tinha o risco de 20%, sem o nível na chave
+        chave += f":{risco}"
 
     if os.path.exists(arquivo_cache):
         with open(arquivo_cache, "r") as f:
@@ -273,8 +282,8 @@ def _zarc_bruto(codigo_ibge, id_cultura):
     if chave in cache_completo:
         return cache_completo[chave]
 
-    print(f"🌐 API: zoneamento da cultura {id_cultura} pra cidade {codigo_ibge}")
-    parametros = {"idCultura": id_cultura, "codigoIBGE": codigo_ibge, "risco": 20}
+    print(f"🌐 API: zoneamento da cultura {id_cultura} pra cidade {codigo_ibge} (risco {risco}%)")
+    parametros = {"idCultura": id_cultura, "codigoIBGE": codigo_ibge, "risco": risco}
     try:
         resposta = requests.get(url, headers=headers, params=parametros, timeout=30)
     except requests.RequestException as e:
@@ -326,6 +335,33 @@ def zarc_por_solo(codigo_ibge, cultura=CULTURA_PADRAO):
         for janela in janelas.values():
             janela.sort()
     return por_solo
+
+
+def riscos_por_solo(codigo_ibge, cultura=CULTURA_PADRAO):
+    """{solo: {ciclo: {decêndio do calendário: risco}}} de uma cultura numa cidade, com os três
+    níveis do ZARC (20, 30 e 40). São três pedidos à API por cidade e cultura, guardados no cache.
+    None se a cidade não tem zoneamento em nenhum nível ou se a API falhar no de 20%.
+    No modo demo só existe o nível de 20%."""
+    if MODO_DEMO:
+        por_solo = zarc_por_solo(codigo_ibge, cultura)
+        if por_solo is None:
+            return None
+        return {solo: {ciclo: {d: RISCO_PADRAO for d in janela} for ciclo, janela in janelas.items()}
+                for solo, janelas in por_solo.items()}
+
+    por_solo = {}
+    for risco in RISCOS:  # do menor para o maior: se um decêndio vier em dois níveis, fica o menor
+        registros = _zarc_bruto(codigo_ibge, CULTURAS[cultura]["id"], risco)
+        if registros is None:
+            if risco == RISCO_PADRAO:
+                return None
+            continue
+        for registro in registros:
+            ciclo = TRADUCAO_CICLOS.get(registro["ciclo"], registro["ciclo"].lower())
+            mapa = por_solo.setdefault(registro["solo"], {}).setdefault(ciclo, {})
+            for d in _decendios_do_registro(registro):
+                mapa.setdefault(d, risco)
+    return por_solo or None
 
 
 def portaria_do_zarc(codigo_ibge, cultura=CULTURA_PADRAO):
