@@ -2,6 +2,8 @@
 
 ABR is an agricultural decision-support application (command line and web page) that uses official Brazilian Agricultural Climate Risk Zoning (ZARC) data to evaluate planting windows for nine crops in any Brazilian state.
 
+**Online:** <https://abr-j9f6.onrender.com> (no installation needed; on the free plan the first visit after a quiet period takes about a minute).
+
 ## Project Overview
 
 The application connects to Embrapa's AgroAPI, searches the municipalities of a state, and checks a proposed planting date against the ZARC window for a crop, a soil class and a cycle. Planting inside the window is the Ministry of Agriculture's condition for Proagro and for subsidized rural insurance. It is an educational software project: its output supports exploration of public zoning data and does not replace professional agronomic advice.
@@ -224,13 +226,13 @@ RAG index and `ollama serve`; the other tabs work without them.
 
 ### Online site
 
-The same page can run as a public site on [Render](https://render.com/)'s free plan, configured in
-`render.yaml`. With `ABR_ONLINE=1` the server listens on Render's port and drops two tabs: the query
+The same page runs as a public site at <https://abr-j9f6.onrender.com>, on
+[Render](https://render.com/)'s free plan, configured in `render.yaml`. With `ABR_ONLINE=1` the server listens on Render's port and drops two tabs: the query
 history, which would be a single file shared by every visitor, and the Documents tab, since the RAG
 needs the local index and Ollama. `requirements-web.txt` installs only what the site uses.
 
-To publish: in Render, *New → Blueprint*, pick this repository, and paste the AgroAPI token into
-`ACCESS_TOKEN` when asked. Each push to `main` updates the site. On the free plan the service sleeps
+To publish a copy of your own: in Render, *New → Blueprint*, pick the repository, and paste your
+AgroAPI token into `ACCESS_TOKEN` when asked. Pushes to `main` redeploy the site. On the free plan the service sleeps
 after 15 minutes without visits (the next visit takes about a minute) and the disk is wiped on every
 restart, so the API cache starts empty and spends the 1,000 monthly requests again.
 
