@@ -44,10 +44,13 @@ The underlying records come from an external public service and may be unavailab
 
 ## Technologies
 
-- Python 3.12
+- Python 3 (tested with 3.14)
 - [Requests](https://pypi.org/project/requests/) for HTTP requests
 - [python-dotenv](https://pypi.org/project/python-dotenv/) for local environment configuration
 - [openpyxl](https://pypi.org/project/openpyxl/) for Excel export
+- [PuLP](https://pypi.org/project/PuLP/) with the CBC solver for the linear program
+- [NumPy](https://pypi.org/project/numpy/), [sentence-transformers](https://pypi.org/project/sentence-transformers/) and [rank_bm25](https://pypi.org/project/rank-bm25/) for the RAG search
+- [Ollama](https://ollama.com/) to run the RAG's language model locally
 - [AgroAPI Agritec v2](https://www.agroapi.cnptia.embrapa.br/) for ZARC data
 
 ## Installation
@@ -196,6 +199,8 @@ python rag/extrair.py    # PDF -> text, one block per page (needs poppler's pdft
 python rag/indexar.py    # chunks + embeddings
 python rag/buscar.py "qual a duração dos ciclos da soja no ZARC?"
 python rag/avaliar.py    # hit@5 of the three searches
+ollama pull huihui_ai/qwen3-abliterated:1.7b                 # once
+ollama cp huihui_ai/qwen3-abliterated:1.7b qwen-livre         # the name responder.py uses
 python rag/responder.py "quantos anos de dados o ZARC do milho usa?"   # needs `ollama serve`
 python rag/avaliar_respostas.py   # answers for the 31 questions, needs `ollama serve`
 ```
@@ -249,10 +254,9 @@ Runtime files such as `.env`, API caches, query-history CSV files, and generated
 
 ## Roadmap
 
-- sourced prices and production costs for the nine crops, in place of the placeholder values;
 - crop and soil choice in the command-line comparison and financial analysis, as in the web interface;
 - an agent in which a language model picks among the planting-window, financial, optimization and RAG functions to answer a question written in plain text;
-- other risk levels besides 20%;
+- the 30% and 40% risk levels in planting-window checks, comparison and the optimization (today only "what to plant" uses them);
 - improve automated testing and error handling around the external API;
 - validate the decision-support assumptions with domain specialists.
 
@@ -262,7 +266,8 @@ These are directions for future study, not completed features.
 
 - [ZARC portal — Brazilian Ministry of Agriculture](https://mapa-indicadores.agricultura.gov.br/publico/extensions/Zarc/Zarc.html)
 - [AgroAPI Agritec — Embrapa](https://www.agroapi.cnptia.embrapa.br/)
-- [CONAB crop surveys](https://www.gov.br/conab/pt-br/atuacao/informacoes-agropecuarias/safras) — national average yields used as example values
+- [CONAB open data](https://portaldeinformacoes.conab.gov.br/download-arquivos.html) — yield by state from the crop surveys, prices received by producers and production costs (`valores.py`)
+- [IBGE SIDRA, table 5457](https://sidra.ibge.gov.br/tabela/5457) — Municipal Agricultural Production, yield per municipality and crop since 1974 (`quebra.py`)
 
 ## Author
 
