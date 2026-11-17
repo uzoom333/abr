@@ -1,0 +1,4 @@
+# Só o que o site precisa (sem o RAG). Instalação completa: requirements.txt
+requests
+python-dotenv
+pulp<4

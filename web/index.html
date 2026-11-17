@@ -155,6 +155,8 @@ td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
 .barras div { height: .7rem; background: var(--vazio); border-radius: 2px; }
 .barras div b { display: block; height: 100%; background: var(--verde); border-radius: 2px; }
 
+/* no site público os links "Ver nos documentos" não têm para onde ir */
+.online a[href="#documentos"] { display: none; }
 /* Documentos: conversa, com a caixa de pergunta presa embaixo */
 #documentos:not([hidden]) { display: flex; flex-direction: column; padding-bottom: 0; max-width: 48.5rem; }
 .conversa { flex: 1; }
@@ -1040,6 +1042,11 @@ async function trocaEstado() {
     return;
   }
   $("#demo").hidden = !inicio.demo;
+  if (inicio.online) {
+    // site público: Documentos (RAG) e Histórico só existem na versão local
+    ["documentos", "historico"].forEach(id => { $("#" + id).remove(); $(`#nav a[href="#${id}"]`).remove(); });
+    document.documentElement.classList.add("online");
+  }
   $("#uf").innerHTML = inicio.ufs.map(u => `<option ${u === inicio.uf ? "selected" : ""}>${u}</option>`).join("");
   $("#uf").onchange = trocaEstado;
   $("#estado").hidden = inicio.ufs.length < 2;

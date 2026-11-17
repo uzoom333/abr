@@ -1,0 +1,18 @@
+# Site do ABR no Render (plano gratuito). O token da AgroAPI é colado no painel do Render,
+# nunca neste arquivo.
+services:
+  - type: web
+    name: abr
+    runtime: python
+    plan: free
+    branch: main
+    buildCommand: pip install -r requirements-web.txt
+    startCommand: python web/servidor.py
+    healthCheckPath: /
+    envVars:
+      - key: ABR_ONLINE
+        value: "1"
+      - key: PYTHON_VERSION
+        value: "3.14.0"
+      - key: ACCESS_TOKEN
+        sync: false

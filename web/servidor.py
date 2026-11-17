@@ -29,7 +29,10 @@ from financeiro import CICLOS
 from historico import salvar_consulta
 from zarc import nome_decendio, para_ano_safra, para_calendario, qual_decendio, situacao_na_janela
 
-PORTA = 8000
+PORTA = int(os.getenv("PORT", "8000"))
+# Site público (Render): sem histórico, que seria um só para todos os visitantes, e sem o RAG,
+# que precisa do índice e do Ollama. Local, sem a variável, tudo continua como antes.
+ONLINE = os.getenv("ABR_ONLINE") == "1"
 LIMITE_CIDADES = 10
 
 
@@ -130,6 +133,7 @@ def culturas_do_estado(uf):
 def inicio(_):
     return {
         "demo": api.MODO_DEMO,
+        "online": ONLINE,
         "limite_cidades": LIMITE_CIDADES,
         "ufs": api.ufs_disponiveis(),
         "uf": api.UF_PADRAO,
@@ -189,7 +193,8 @@ def janela(d):
         raise Erro(f"O ZARC não tem o ciclo {ciclo} para essa cidade nesse solo.")
 
     status, decendios = situacao_na_janela(data, janelas[ciclo])
-    salvar_consulta(codigo, ciclo, data, status == "dentro", cultura, solo)
+    if not ONLINE:
+        salvar_consulta(codigo, ciclo, data, status == "dentro", cultura, solo)
     decendio = qual_decendio(data)
     return {
         "cidade": nomes_municipios().get(codigo, "?"),
@@ -503,6 +508,7 @@ def perguntar(d):
 ROTAS = {"/api/inicio": inicio, "/api/municipios": municipios, "/api/opcoes": opcoes, "/api/quebras": quebras,
          "/api/janela": janela, "/api/plantar": plantar, "/api/comparar": comparar,
          "/api/financeiro": financeiro, "/api/otimizar": otimizar, "/api/historico": historico}
+SO_LOCAL = {"/api/historico", "/api/historico.xlsx", "/api/perguntar"}
 
 
 class Pedido(BaseHTTPRequestHandler):
@@ -531,6 +537,8 @@ class Pedido(BaseHTTPRequestHandler):
             self.envia_json(400, {"erro": f"Pedido incompleto ou inválido ({e})."})
 
     def do_GET(self):
+        if ONLINE and self.path in SO_LOCAL:
+            return self.envia_json(404, {"erro": "Só na versão local."})
         if self.path in ("/", "/index.html"):
             with open(os.path.join(PASTA_WEB, "index.html"), "rb") as f:
                 return self.envia(200, f.read(), "text/html; charset=utf-8")
@@ -546,6 +554,8 @@ class Pedido(BaseHTTPRequestHandler):
             dados = json.loads(self.rfile.read(tamanho) or b"{}")
         except ValueError:
             return self.envia_json(400, {"erro": "JSON inválido."})
+        if ONLINE and self.path in SO_LOCAL:
+            return self.envia_json(404, {"erro": "Só na versão local."})
         if self.path == "/api/perguntar":
             return self.responde_aos_poucos(perguntar(dados))
         self.responde(dados)
@@ -571,8 +581,9 @@ def main():
     api.aviso_modo_demo()
     # valores da Conab: baixa de novo se passaram da validade, sem segurar a abertura da página
     threading.Thread(target=valores.atualiza_se_velho, daemon=True).start()
-    servidor = ThreadingHTTPServer(("127.0.0.1", PORTA), Pedido)
-    print(f"ABR aberto em http://localhost:{PORTA}  (Ctrl+C para fechar)")
+    # online o serviço de hospedagem precisa alcançar o servidor de fora; local, só esta máquina
+    servidor = ThreadingHTTPServer(("0.0.0.0" if ONLINE else "127.0.0.1", PORTA), Pedido)
+    print(f"ABR aberto em http://localhost:{PORTA}  (Ctrl+C para fechar)", flush=True)
     try:
         servidor.serve_forever()
     except KeyboardInterrupt:

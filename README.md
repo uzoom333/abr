@@ -222,6 +222,18 @@ Planting windows are drawn on a strip of 36 ten-day periods running from Septemb
 crop year), and the optimization plan is drawn inside those windows. The Documents tab needs the
 RAG index and `ollama serve`; the other tabs work without them.
 
+### Online site
+
+The same page can run as a public site on [Render](https://render.com/)'s free plan, configured in
+`render.yaml`. With `ABR_ONLINE=1` the server listens on Render's port and drops two tabs: the query
+history, which would be a single file shared by every visitor, and the Documents tab, since the RAG
+needs the local index and Ollama. `requirements-web.txt` installs only what the site uses.
+
+To publish: in Render, *New → Blueprint*, pick this repository, and paste the AgroAPI token into
+`ACCESS_TOKEN` when asked. Each push to `main` updates the site. On the free plan the service sleeps
+after 15 minutes without visits (the next visit takes about a minute) and the disk is wiped on every
+restart, so the API cache starts empty and spends the 1,000 monthly requests again.
+
 ## Repository Structure
 
 ```text
@@ -246,6 +258,8 @@ abr/
 ├── demo/             # Bundled sample data used when no API token is present
 ├── teste.api.py      # Standalone API exploration script
 ├── requirements.txt  # Python dependencies
+├── requirements-web.txt # Dependencies of the online site only (no RAG)
+├── render.yaml       # Online site on Render
 ├── bugs.md           # Maintainer notes for known issues
 └── README.md
 ```
