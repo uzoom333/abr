@@ -311,10 +311,10 @@ def financeiro(d):
             if ciclo not in produtividade:
                 continue
             status, decendios = situacao_na_janela(data, janelas[ciclo])
-            bruto = produtividade[ciclo] * preco
+            receita = produtividade[ciclo] * preco
             linhas.append({"cidade": nomes.get(codigo, "?"), "ciclo": ciclo, "status": status,
                            "decendios": decendios, "produtividade": produtividade[ciclo],
-                           "lucro_bruto": bruto, "lucro_liquido": bruto - custo})
+                           "receita": receita, "lucro_liquido": receita - custo})
 
     ordem = {"dentro": 0, "antes": 1}
     viaveis = [l for l in linhas if l["status"] != "passou"]

@@ -634,7 +634,7 @@ liga("financeiro", (f, form) => ["/api/financeiro", { ...f, codigos: marcadas(fo
   ${r.viaveis.length ? `<div class="rolagem"><table>
     <tr><th></th><th>Ciclo</th><th class="n">Produtividade</th><th class="n">Receita por ha</th><th class="n">Lucro líquido por ha</th><th>Cidades</th></tr>
     ${porCiclo(r.viaveis).map((c, i) => `<tr><td class="n">${i + 1}</td><td>${NOME_CICLO[c.ciclo]}</td>
-      <td class="n">${c.produtividade.toLocaleString("pt-BR")} ${culturaDe(form).unidade}/ha</td><td class="n">${reais(c.lucro_bruto)}</td><td class="n"><strong>${reais(c.lucro_liquido)}</strong></td>
+      <td class="n">${c.produtividade.toLocaleString("pt-BR")} ${culturaDe(form).unidade}/ha</td><td class="n">${reais(c.receita)}</td><td class="n"><strong>${reais(c.lucro_liquido)}</strong></td>
       <td>${c.situacoes.map(s => `<div>${selo(s)}: ${s.cidades.map(esc).join(", ")}</div>`).join("")}</td></tr>`).join("")}
   </table></div>` : `<p>Nenhuma janela ainda aberta ou por abrir nesta safra para as cidades escolhidas.</p>`}
   ${lista("Janela já fechada nesta safra", r.passadas.map(l => `${l.cidade} (${NOME_CICLO[l.ciclo].toLowerCase()})`))}

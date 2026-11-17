@@ -83,8 +83,8 @@ def calcula_opcoes_cidade(codigo, nome, data_ref, custo_ha, preco_saca, produtiv
 
         status, decendios = status_janela(data_ref, ciclo, janelas)
         produtividade = produtividade_por_ciclo[ciclo]
-        lucro_bruto = produtividade * preco_saca
-        lucro_liquido = lucro_bruto - custo_ha
+        receita = produtividade * preco_saca
+        lucro_liquido = receita - custo_ha
 
         opcoes.append({
             "codigo": codigo,
@@ -93,7 +93,7 @@ def calcula_opcoes_cidade(codigo, nome, data_ref, custo_ha, preco_saca, produtiv
             "status": status,
             "decendios": decendios,
             "produtividade": produtividade,
-            "lucro_bruto": lucro_bruto,
+            "receita": receita,
             "lucro_liquido": lucro_liquido,
         })
 
@@ -199,7 +199,7 @@ def analisar_financeiro():
                 f"{i}. {emoji} {o['cidade']} — ciclo {o['ciclo']} "
                 f"({situacao})\n"
                 f"   Produtividade: {o['produtividade']:.1f} sc/ha | "
-                f"Lucro bruto: R$ {o['lucro_bruto']:.2f}/ha | "
+                f"Receita: R$ {o['receita']:.2f}/ha | "
                 f"Lucro líquido: R$ {o['lucro_liquido']:.2f}/ha"
             )
 

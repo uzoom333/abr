@@ -159,8 +159,9 @@ How it works:
    (reciprocal rank fusion of the two).
 4. `avaliar.py` measures hit@5 against `avaliacao.csv`: 31 questions, each with the file and page
    where the answer is. A hit means one of the five chunks returned is from one of those pages.
-5. `responder.py` sends the question and the retrieved chunks to a local LLM through Ollama. The
-   model cites only the block number (`[Bloco 2]`); the code replaces it with the document and page.
+5. `responder.py` sends the question and the retrieved chunks to a local LLM through Ollama: Qwen3
+   1.7B (`huihui_ai/qwen3-abliterated:1.7b`, copied locally as `qwen-livre`). The model cites only
+   the block number (`[Bloco 2]`); the code replaces it with the document and page.
 6. `avaliar_respostas.py` generates an answer for each of the 31 questions, writes them to
    `respostas.csv` and checks whether the answer cites a page from the answer key.
 
@@ -174,7 +175,7 @@ Retrieval results (hit@5, 31 questions):
 
 Adding the document title to each chunk was the change that brought vector search to 28/31.
 
-Answer results (vector search, top 5 chunks, Qwen3 4B running locally, 31 questions):
+Answer results (vector search, top 5 chunks, Qwen3 1.7B running locally, 31 questions):
 
 | Check                                  | Result |
 |----------------------------------------|--------|
@@ -184,7 +185,7 @@ Citing the right page does not mean the answer is right. Reading `respostas.csv`
 gets the content wrong in some answers that retrieval got right: it gave the limits of another
 soil class for AD3 and AD4, gave the wrong yield for a corn hybrid, and said irrigated crops must
 follow the ZARC planting dates when the document says the opposite. Retrieval finds the page in
-28 of 31 questions, so the weak part is the 4B model, not the search.
+28 of 31 questions, so the weak part is the 1.7B model, not the search.
 
 Run from the repository root:
 
